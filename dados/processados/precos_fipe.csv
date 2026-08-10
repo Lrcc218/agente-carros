@@ -1,6 +1,6 @@
 id,marca_fipe,modelo_fipe,ano_fipe,combustivel_fipe,codigo_fipe,preco_fipe,mes_referencia,coletado_em
 bmw_320i,BMW,320iA 2.0 Turbo/ActiveFlex 16V/GP  4p,2024,Gasolina,009164-2,257695.0,agosto de 2026,2026-08-10
-bmw_x1,BMW,X1 SDRIVE 18i GP 1.5 TB Aut.,2024,Gasolina,009304-1,250186.0,agosto de 2026,2026-08-10
+bmw_x1,BMW,X1 SDRIVE 20i X-Line 2.0 TB Aut.,2024,Gasolina,009303-3,270531.0,agosto de 2026,2026-08-10
 byd_dolphin,BYD,Dolphin EV GS (Elétrico),2024,Elétrico,095007-6,118020.0,agosto de 2026,2026-08-10
 byd_seal,BYD,Seal (Elétrico),2024,Elétrico,095008-4,204256.0,agosto de 2026,2026-08-10
 ferrari_296,Ferrari,296 GTB (Hibrido),2024,Híbrido,031054-9,3309948.0,agosto de 2026,2026-08-10
@@ -17,7 +17,7 @@ jeep_compass,Jeep,COMPASS S T270 1.3 TB 4x2 Flex Aut.,2024,Flex,017074-7,161640.
 jeep_renegade,Jeep,Renegade T270 1.3 TB 4x2 Flex Aut.,2024,Flex,017092-5,101940.0,agosto de 2026,2026-08-10
 mercedes_c200,Mercedes-Benz,C-200 AMG Line EQ Boost 1.5 TB (Hib.),2024,Híbrido,021468-0,290046.0,agosto de 2026,2026-08-10
 nissan_kicks,Nissan,KICKS Sense 1.6 16V Flex Aut.,2024,Flex,023178-9,105525.0,agosto de 2026,2026-08-10
-porsche_718,Porsche,718 Boxster 2.0 300cv,2024,Gasolina,035069-9,571840.0,agosto de 2026,2026-08-10
+porsche_718,Porsche,718 Boxster GTS 4.0 400cv,2024,Gasolina,035127-0,674521.0,agosto de 2026,2026-08-10
 porsche_911,Porsche,911 Carrera T 3.0 ,2024,Gasolina,035106-7,858451.0,agosto de 2026,2026-08-10
 renault_duster,Renault,DUSTER Zen 1.6 16V Flex Mec.,2024,Flex,025303-0,81402.0,agosto de 2026,2026-08-10
 renault_kwid,Renault,KWID Zen 1.0 Flex 12V 5p Mec.,2024,Flex,025266-2,52177.0,agosto de 2026,2026-08-10

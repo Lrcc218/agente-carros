@@ -36,19 +36,43 @@ python scripts/coletar_fipe.py
 | --- | --- |
 | Fonte | Programa Brasileiro de Etiquetagem Veicular (Inmetro) |
 | Pagina | https://www.gov.br/inmetro/pt-br/assuntos/avaliacao-da-conformidade/programa-brasileiro-de-etiquetagem/tabelas-de-eficiencia-energetica/veiculos-automotivos-pbe-veicular |
-| Arquivo | `dados/brutos/documentos/` (baixado pelo script) |
-| Script | `scripts/baixar_documentos.py` |
-| Estado | Documento oficial baixado; extracao dos valores feita manualmente |
+| PDFs | `dados/brutos/documentos/` (baixados pelo script) |
+| Dataset | `dados/processados/consumo_pbev.csv` |
+| Scripts | `scripts/baixar_documentos.py` e `scripts/extrair_consumo_pbev.py` |
+| Estado | Extraido da fonte oficial |
 
-O Inmetro publica a tabela apenas em PDF, sem versao em planilha. Para o
-recorte deste projeto a extracao dos valores de consumo foi feita a mao,
-modelo a modelo, em vez de automatizada — extracao de tabela em PDF e
-pouco confiavel e erra em silencio, o que seria pior do que a curadoria
-manual num catalogo deste tamanho.
+O Inmetro publica a tabela apenas em PDF, sem versao em planilha. O arquivo
+de 2026 reune 892 modelos e versoes de 42 marcas.
 
-O PDF permanece no projeto e e indexado para busca semantica, de modo que
-o agente tambem responde sobre a metodologia da etiquetagem e o significado
-das faixas de eficiencia.
+A extracao e automatizada, mas nao generica: em vez de tentar interpretar as
+892 linhas, o script localiza apenas os modelos do catalogo, usando os
+padroes declarados em `dados/mapa_pbev.csv`. As colunas numericas do Inmetro
+tem posicao fixa no fim da linha, o que torna a leitura confiavel para um
+conjunto conhecido de modelos.
+
+Cada linha de `consumo_pbev.csv` guarda o texto original extraido do PDF na
+coluna `linha_original`, de modo que qualquer valor pode ser conferido contra
+a fonte sem reabrir o documento.
+
+Os PDFs permanecem no projeto e sao indexados para busca semantica, de modo
+que o agente tambem responde sobre a metodologia da etiquetagem e o
+significado das faixas de eficiencia.
+
+### Divergencias conhecidas entre FIPE e PBE Veicular
+
+As duas fontes nomeiam versoes de maneira diferente e nem sempre cobrem o
+mesmo conjunto. O que foi encontrado neste catalogo:
+
+- **Volkswagen T-Cross** nao consta nas tabelas de 2025 nem de 2026. O modelo
+  permanece no catalogo com preco e ficha tecnica, sem dados de consumo. O
+  agente informa a ausencia em vez de estimar, e a simulacao de viagem nao
+  esta disponivel para ele.
+- **Fiat Strada** e **Mercedes-Benz C 200** so aparecem na tabela de 2025.
+- **BMW X1** e **Porsche 718 Boxster** tiveram a versao do catalogo ajustada
+  para a que existe em ambas as fontes (sDrive20i 2.0 e GTS 4.0).
+- Nos demais casos em que a versao de entrada da FIPE nao esta no PBE
+  Veicular, foi usada a versao mais proxima. A coluna `versao_pbev` registra
+  exatamente qual linha do Inmetro alimentou cada modelo.
 
 ## 3. Ficha tecnica
 
@@ -57,22 +81,24 @@ das faixas de eficiencia.
 | Arquivo | `dados/processados/fichas_tecnicas.csv` |
 | Estado | **Curadoria manual — pendente de conferencia** |
 
-Motor, potencia, torque, cambio, tracao, capacidade do tanque, porta-malas
-e consumo foram preenchidos manualmente. A coluna `fonte_ficha` marca a
-origem de cada linha.
+Motor, potencia, torque, cambio, tracao, capacidade do tanque e porta-malas
+foram preenchidos manualmente. **Consumo e autonomia nao estao neste arquivo**:
+vem do PBE Veicular, para que cada arquivo tenha uma unica procedencia.
 
-> **Aviso.** Os valores da ficha tecnica ainda nao foram conferidos um a um
-> contra o PBE Veicular e o material oficial das montadoras. Sao coerentes
-> com as versoes indicadas e servem para exercitar o agente, mas nao devem
-> ser tratados como referencia definitiva ate a revisao ser concluida. O
-> agente informa essa limitacao ao usuario.
+> **Aviso.** Os valores desta planilha ainda nao foram conferidos um a um
+> contra o material oficial das montadoras. Sao coerentes com as versoes
+> indicadas e servem para exercitar o agente, mas nao devem ser tratados como
+> referencia definitiva ate a revisao ser concluida. O agente informa essa
+> limitacao ao usuario.
+
+Note que os dados que mais importam para as respostas do agente — preco e
+consumo — vem de fonte oficial e nao dependem desta conferencia.
 
 Conferencia pendente, por modelo:
 
-- [ ] Consumo cidade e estrada (gasolina, etanol e diesel) contra o PBE Veicular
 - [ ] Potencia e torque contra a ficha da montadora
 - [ ] Capacidade do tanque e do porta-malas
-- [ ] Autonomia dos eletricos (BYD Dolphin e BYD Seal)
+- [ ] Cambio e tracao da versao exata
 
 ## 4. Escopo do catalogo
 
