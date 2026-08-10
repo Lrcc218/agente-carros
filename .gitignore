@@ -1,0 +1,22 @@
+# Ambiente
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Segredos
+.env
+.streamlit/secrets.toml
+
+# Dados brutos baixados de fontes externas (reproduzíveis pelos scripts)
+dados/brutos/*
+!dados/brutos/.gitkeep
+
+# Sistema
+.DS_Store
