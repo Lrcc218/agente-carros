@@ -44,17 +44,22 @@ class Veiculo:
     porta_malas_litros: int | None
     combustivel: str
     tanque_litros: float | None
-    # Consumo do combustivel principal do veiculo: gasolina nos flex e nos
-    # movidos a gasolina, diesel nos movidos a diesel. Nos eletricos fica
-    # vazio e a autonomia da bateria e usada no lugar.
+    # Consumo do combustivel principal: gasolina nos flex e nos movidos a
+    # gasolina, diesel nos movidos a diesel. Vazio nos eletricos.
     consumo_cidade: float | None
     consumo_estrada: float | None
     # Preenchidos apenas em veiculos flex.
     consumo_cidade_etanol: float | None
     consumo_estrada_etanol: float | None
+    # Eficiencia dos eletricos, em km por litro equivalente de gasolina.
+    consumo_cidade_kmle: float | None
+    consumo_estrada_kmle: float | None
     autonomia_eletrica_km: int | None
+    classe_energetica: str
+    versao_pbev: str
     preco_fipe: float | None
     codigo_fipe: str | None
+    mes_referencia_fipe: str
     fonte_ficha: str
 
     @property
@@ -68,6 +73,10 @@ class Veiculo:
     @property
     def e_eletrico(self) -> bool:
         return self.combustivel.lower() == Combustivel.ELETRICO.value
+
+    @property
+    def tem_dados_de_consumo(self) -> bool:
+        return self.consumo_cidade is not None and self.consumo_estrada is not None
 
 
 @dataclass(frozen=True)
