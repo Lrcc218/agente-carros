@@ -44,8 +44,12 @@ class Veiculo:
     porta_malas_litros: int | None
     combustivel: str
     tanque_litros: float | None
-    consumo_cidade_gasolina: float | None
-    consumo_estrada_gasolina: float | None
+    # Consumo do combustivel principal do veiculo: gasolina nos flex e nos
+    # movidos a gasolina, diesel nos movidos a diesel. Nos eletricos fica
+    # vazio e a autonomia da bateria e usada no lugar.
+    consumo_cidade: float | None
+    consumo_estrada: float | None
+    # Preenchidos apenas em veiculos flex.
     consumo_cidade_etanol: float | None
     consumo_estrada_etanol: float | None
     autonomia_eletrica_km: int | None
@@ -59,7 +63,7 @@ class Veiculo:
 
     @property
     def e_flex(self) -> bool:
-        return self.consumo_cidade_etanol is not None and self.consumo_cidade_gasolina is not None
+        return self.consumo_cidade_etanol is not None and self.consumo_cidade is not None
 
     @property
     def e_eletrico(self) -> bool:

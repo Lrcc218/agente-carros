@@ -1,0 +1,29 @@
+id,marca,modelo,versao,ano,categoria,motor,cilindrada,potencia_cv,torque_kgfm,cambio,tracao,portas,lugares,porta_malas_litros,combustivel,tanque_litros,consumo_cidade,consumo_estrada,consumo_cidade_etanol,consumo_estrada_etanol,autonomia_eletrica_km,fonte_ficha
+fiat_mobi,Fiat,Mobi,Trekking 1.0 Flex,2024,hatch_popular,1.0 Firefly aspirado,1.0,75,10.5,Manual 5 marchas,Dianteira,5,5,235,flex,47,11.4,12.6,7.9,8.7,,curadoria
+fiat_argo,Fiat,Argo,1.0 Firefly Flex,2024,hatch_popular,1.0 Firefly aspirado,1.0,72,10.4,Manual 5 marchas,Dianteira,5,5,300,flex,47,11.7,13.0,8.1,9.0,,curadoria
+fiat_strada,Fiat,Strada,Freedom 1.3 Cabine Dupla,2024,picape_compacta,1.3 Firefly aspirado,1.3,107,13.7,Manual 5 marchas,Dianteira,4,5,844,flex,55,9.9,11.5,6.9,8.0,,curadoria
+vw_polo,Volkswagen,Polo,1.0 MPI Flex,2024,hatch_popular,1.0 MPI aspirado,1.0,84,10.4,Manual 5 marchas,Dianteira,5,5,300,flex,52,11.7,13.6,8.2,9.5,,curadoria
+vw_nivus,Volkswagen,Nivus,Sense 1.0 TSI,2024,suv_compacto,1.0 TSI turbo,1.0,128,20.4,Automatico 6 marchas,Dianteira,5,5,415,flex,52,11.4,13.3,7.9,9.2,,curadoria
+vw_tcross,Volkswagen,T-Cross,Sense 1.0 TSI,2024,suv_compacto,1.0 TSI turbo,1.0,128,20.4,Automatico 6 marchas,Dianteira,5,5,420,flex,52,10.9,12.6,7.6,8.8,,curadoria
+gm_onix,Chevrolet,Onix,Hatch 1.0 Flex,2024,hatch_popular,1.0 aspirado,1.0,82,10.6,Manual 6 marchas,Dianteira,5,5,275,flex,44,12.0,13.6,8.4,9.5,,curadoria
+gm_tracker,Chevrolet,Tracker,1.0 Turbo Automatico,2024,suv_compacto,1.0 turbo,1.0,116,16.8,Automatico 6 marchas,Dianteira,5,5,393,flex,44,11.0,12.9,7.7,9.0,,curadoria
+hyundai_hb20,Hyundai,HB20,Sense 1.0 Flex,2024,hatch_popular,1.0 aspirado,1.0,80,10.2,Manual 5 marchas,Dianteira,5,5,300,flex,50,12.4,13.9,8.6,9.7,,curadoria
+hyundai_creta,Hyundai,Creta,Action 1.6 Automatico,2024,suv_compacto,1.6 aspirado,1.6,120,15.5,Automatico 6 marchas,Dianteira,5,5,422,flex,50,9.8,11.6,6.8,8.1,,curadoria
+renault_kwid,Renault,Kwid,Zen 1.0 Flex,2024,hatch_entrada,1.0 SCe aspirado,1.0,71,10.0,Manual 5 marchas,Dianteira,5,5,290,flex,38,13.0,14.2,9.1,9.9,,curadoria
+renault_duster,Renault,Duster,Zen 1.6 Flex,2024,suv_compacto,1.6 SCe aspirado,1.6,120,16.2,Manual 6 marchas,Dianteira,5,5,414,flex,50,9.3,10.9,6.5,7.6,,curadoria
+nissan_kicks,Nissan,Kicks,Sense 1.6 Automatico,2024,suv_compacto,1.6 aspirado,1.6,114,15.5,Automatico CVT,Dianteira,5,5,432,flex,41,10.2,12.0,7.1,8.4,,curadoria
+toyota_corolla,Toyota,Corolla,GLi 2.0 Flex,2024,sedan_medio,2.0 Dynamic Force,2.0,177,21.4,Automatico CVT,Dianteira,4,5,470,flex,50,10.4,13.2,7.3,9.2,,curadoria
+toyota_corolla_cross,Toyota,Corolla Cross,XR 2.0 Flex,2024,suv_medio,2.0 Dynamic Force,2.0,177,21.4,Automatico CVT,Dianteira,5,5,440,flex,47,9.9,12.3,6.9,8.6,,curadoria
+toyota_hilux,Toyota,Hilux,CD SRV 4x4 2.8 Diesel,2024,picape_media,2.8 turbodiesel,2.8,204,51.0,Automatico 6 marchas,4x4,4,5,1000,diesel,80,8.5,10.3,,,,curadoria
+honda_city,Honda,City,Sedan EX 1.5 Flex,2024,sedan_compacto,1.5 i-VTEC aspirado,1.5,126,15.5,Automatico CVT,Dianteira,4,5,519,flex,40,11.2,13.4,7.8,9.3,,curadoria
+honda_hrv,Honda,HR-V,EX 1.5 Flex,2024,suv_compacto,1.5 i-VTEC aspirado,1.5,126,15.5,Automatico CVT,Dianteira,5,5,354,flex,48,10.7,12.5,7.4,8.7,,curadoria
+jeep_renegade,Jeep,Renegade,T270 1.3 Turbo Flex,2024,suv_compacto,1.3 turbo,1.3,185,27.5,Automatico 6 marchas,Dianteira,5,5,320,flex,55,9.5,11.5,6.6,8.0,,curadoria
+jeep_compass,Jeep,Compass,S T270 1.3 Turbo Flex,2024,suv_medio,1.3 turbo,1.3,185,27.5,Automatico 6 marchas,Dianteira,5,5,410,flex,55,8.9,11.0,6.2,7.7,,curadoria
+byd_dolphin,BYD,Dolphin,EV GS,2024,eletrico_hatch,Motor eletrico sincrono,,204,31.6,Automatico reducao unica,Dianteira,5,5,345,eletrico,,,,,,340,curadoria
+byd_seal,BYD,Seal,EV,2024,eletrico_sedan,Motor eletrico sincrono,,313,36.7,Automatico reducao unica,Traseira,4,5,400,eletrico,,,,,,460,curadoria
+bmw_320i,BMW,Serie 3,320i 2.0 Turbo ActiveFlex,2024,sedan_premium,2.0 turbo,2.0,184,30.6,Automatico 8 marchas,Traseira,4,5,480,flex,59,9.5,12.5,6.6,8.7,,curadoria
+bmw_x1,BMW,X1,sDrive18i 1.5 Turbo,2024,suv_premium,1.5 turbo,1.5,136,23.5,Automatico 7 marchas,Dianteira,5,5,540,gasolina,54,10.5,12.8,,,,curadoria
+mercedes_c200,Mercedes-Benz,Classe C,C 200 AMG Line 1.5 Turbo Hibrido,2024,sedan_premium,1.5 turbo com sistema hibrido leve,1.5,204,30.6,Automatico 9 marchas,Traseira,4,5,455,gasolina,66,10.9,13.5,,,,curadoria
+porsche_718,Porsche,718 Boxster,2.0 Turbo Conversivel,2024,esportivo_conversivel,2.0 boxer turbo,2.0,300,38.7,Automatico PDK 7 marchas,Traseira,2,2,150,gasolina,64,7.0,10.5,,,,curadoria
+porsche_911,Porsche,911,Carrera 3.0 Turbo,2024,esportivo,3.0 boxer biturbo,3.0,385,45.9,Automatico PDK 8 marchas,Traseira,2,4,132,gasolina,67,6.5,10.0,,,,curadoria
+ferrari_296,Ferrari,296,GTB Hibrido,2024,superesportivo,3.0 V6 biturbo com motor eletrico,3.0,830,75.5,Automatico DCT 8 marchas,Traseira,2,2,201,gasolina,65,4.5,7.5,,,,curadoria
