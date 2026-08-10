@@ -12,10 +12,16 @@ from typing import Any
 
 from agente_carros.adaptadores.catalogo_csv import CatalogoCSV
 from agente_carros.adaptadores.llm_nvidia import ProvedorNVIDIA
+from agente_carros.adaptadores.precos_anp_csv import PrecosANP
 from agente_carros.adaptadores.vetorial_faiss import IndiceNaoEncontrado, VetorialFAISS
 from agente_carros.agente import montar_agente
 from agente_carros.config import Configuracao, carregar_configuracao
-from agente_carros.dominio.portas import BaseVetorial, ProvedorLLM, RepositorioCatalogo
+from agente_carros.dominio.portas import (
+    BaseVetorial,
+    ProvedorLLM,
+    RepositorioCatalogo,
+    RepositorioPrecosCombustivel,
+)
 
 PROVEDORES = {"nvidia": ProvedorNVIDIA}
 
@@ -27,6 +33,7 @@ class Montagem:
     executor: Any
     catalogo: RepositorioCatalogo
     tem_indice: bool
+    tem_precos: bool = False
     aviso: str = ""
 
 
@@ -49,6 +56,16 @@ def criar_catalogo(config: Configuracao) -> RepositorioCatalogo:
     )
 
 
+def criar_precos_combustivel(config: Configuracao) -> RepositorioPrecosCombustivel | None:
+    """Devolve os precos da ANP, ou None se o dataset ainda nao foi coletado.
+
+    Sem ele a simulacao continua funcionando com valores de referencia, mas
+    perde o preco por estado.
+    """
+    repositorio = PrecosANP(config.caminhos.processados / "precos_combustivel_anp.csv")
+    return repositorio if repositorio.disponivel else None
+
+
 def criar_base_vetorial(config: Configuracao, provedor: ProvedorLLM) -> BaseVetorial | None:
     """Devolve a base vetorial, ou None se o indice ainda nao foi construido.
 
@@ -68,25 +85,32 @@ def criar_agente(config: Configuracao | None = None) -> Montagem:
     provedor = criar_provedor(config)
     catalogo = criar_catalogo(config)
     base_vetorial = criar_base_vetorial(config, provedor)
+    precos = criar_precos_combustivel(config)
 
     executor = montar_agente(
         modelo_chat=provedor.modelo_chat(),
         catalogo=catalogo,
         base_vetorial=base_vetorial,
         trechos_recuperados=config.trechos_recuperados,
+        precos=precos,
     )
 
-    aviso = (
-        ""
-        if base_vetorial is not None
-        else (
-            "Indice de documentos nao encontrado. Perguntas sobre a metodologia do "
+    pendencias = []
+    if base_vetorial is None:
+        pendencias.append(
+            "Indice de documentos nao encontrado; perguntas sobre os documentos do "
             "Inmetro nao serao respondidas. Rode: python scripts/indexar_documentos.py"
         )
-    )
+    if precos is None:
+        pendencias.append(
+            "Precos da ANP nao encontrados; a simulacao usara valores de referencia "
+            "em vez do preco do seu estado. Rode: python scripts/coletar_precos_anp.py"
+        )
+
     return Montagem(
         executor=executor,
         catalogo=catalogo,
         tem_indice=base_vetorial is not None,
-        aviso=aviso,
+        tem_precos=precos is not None,
+        aviso=" ".join(pendencias),
     )

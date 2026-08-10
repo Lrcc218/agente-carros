@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from agente_carros.dominio.modelos import CustoPorCombustivel, ResultadoViagem, Veiculo
 
-# Precos de referencia em reais por litro. Sao apenas o ponto de partida:
-# quem pergunta pode informar o preco praticado na sua regiao.
-PRECO_PADRAO_GASOLINA = 6.20
-PRECO_PADRAO_ETANOL = 4.40
-PRECO_PADRAO_DIESEL = 6.30
+# Usados apenas se o levantamento da ANP nao estiver disponivel. Em operacao
+# normal os precos vem do dataset oficial, ja no estado de quem pergunta.
+PRECO_PADRAO_GASOLINA = 6.59
+PRECO_PADRAO_ETANOL = 4.28
+PRECO_PADRAO_DIESEL = 6.69
 
 
 class DadosInsuficientes(ValueError):
@@ -64,6 +64,7 @@ def simular_viagem(
     preco_gasolina: float = PRECO_PADRAO_GASOLINA,
     preco_etanol: float = PRECO_PADRAO_ETANOL,
     preco_diesel: float = PRECO_PADRAO_DIESEL,
+    fonte_precos: str = "",
 ) -> ResultadoViagem:
     """Calcula o custo de combustivel de uma viagem.
 
@@ -133,6 +134,8 @@ def simular_viagem(
             f"Nos precos informados, {vencedor} sai R$ {diferenca:.2f} mais barato nesta viagem."
         )
 
+    if fonte_precos:
+        observacoes.append(f"Precos de combustivel: {fonte_precos}.")
     if veiculo.versao_pbev:
         observacoes.append(
             f"Consumo conforme o PBE Veicular do Inmetro, versao {veiculo.versao_pbev}."

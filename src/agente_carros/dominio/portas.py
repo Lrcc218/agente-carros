@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
 
-from agente_carros.dominio.modelos import TrechoRecuperado, Veiculo
+from agente_carros.dominio.modelos import PrecoCombustivel, TrechoRecuperado, Veiculo
 
 
 @runtime_checkable
@@ -32,6 +32,23 @@ class BaseVetorial(Protocol):
 
     def buscar(self, consulta: str, quantidade: int) -> list[TrechoRecuperado]:
         """Recupera os trechos mais relevantes para a consulta."""
+        ...
+
+
+@runtime_checkable
+class RepositorioPrecosCombustivel(Protocol):
+    """Acesso aos precos de combustivel praticados por estado."""
+
+    def preco(self, produto: str, uf: str = "BR") -> PrecoCombustivel | None:
+        """Preco de um produto num estado, ou None se nao houver apuracao."""
+        ...
+
+    def por_estado(self, produto: str) -> list[PrecoCombustivel]:
+        """Preco de um produto em todos os estados apurados."""
+        ...
+
+    def estados_disponiveis(self) -> list[str]:
+        """Siglas dos estados com dados."""
         ...
 
 

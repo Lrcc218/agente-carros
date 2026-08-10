@@ -89,6 +89,24 @@ class TrechoRecuperado:
 
 
 @dataclass(frozen=True)
+class PrecoCombustivel:
+    """Preco de um combustivel num estado, apurado pela ANP."""
+
+    uf: str
+    produto: str
+    preco_mediano: float
+    preco_minimo: float
+    preco_maximo: float
+    amostras: int
+    periodo_inicio: str
+    periodo_fim: str
+
+    @property
+    def descricao_periodo(self) -> str:
+        return f"levantamento da ANP de {self.periodo_inicio} a {self.periodo_fim}"
+
+
+@dataclass(frozen=True)
 class CustoPorCombustivel:
     """Resultado da simulacao para um combustivel especifico."""
 

@@ -11,9 +11,14 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from agente_carros.dominio.portas import BaseVetorial, RepositorioCatalogo
+from agente_carros.dominio.portas import (
+    BaseVetorial,
+    RepositorioCatalogo,
+    RepositorioPrecosCombustivel,
+)
 from agente_carros.ferramentas import consultar_catalogo as catalogo_ferramentas
 from agente_carros.ferramentas.buscar_documentos import buscar_nos_documentos
+from agente_carros.ferramentas.consultar_precos import consultar_precos, ranking_estados
 from agente_carros.ferramentas.simular_viagem import (
     PRECO_PADRAO_DIESEL,
     PRECO_PADRAO_ETANOL,
@@ -91,14 +96,36 @@ class SimulacaoViagem(BaseModel):
         default=0.3, description="Fracao do percurso em cidade, de 0 a 1"
     )
     ida_e_volta: bool = Field(default=False, description="Se a viagem inclui o retorno")
-    preco_gasolina: float = Field(
-        default=PRECO_PADRAO_GASOLINA, description="Preco do litro da gasolina em reais"
+    estado: str = Field(
+        default="BR",
+        description=(
+            "Sigla do estado onde o combustivel sera abastecido, como SP ou MG. "
+            "Usa o preco oficial praticado la. Deixe BR para a mediana nacional."
+        ),
     )
-    preco_etanol: float = Field(
-        default=PRECO_PADRAO_ETANOL, description="Preco do litro do etanol em reais"
+    preco_gasolina: float | None = Field(
+        default=None,
+        description="Preco do litro da gasolina. So informe se o usuario disser o preco dele.",
     )
-    preco_diesel: float = Field(
-        default=PRECO_PADRAO_DIESEL, description="Preco do litro do diesel em reais"
+    preco_etanol: float | None = Field(
+        default=None,
+        description="Preco do litro do etanol. So informe se o usuario disser o preco dele.",
+    )
+    preco_diesel: float | None = Field(
+        default=None,
+        description="Preco do litro do diesel. So informe se o usuario disser o preco dele.",
+    )
+
+
+class ConsultaPrecos(BaseModel):
+    estado: str = Field(
+        default="BR", description="Sigla do estado, como SP. Use BR para a media nacional."
+    )
+
+
+class RankingPrecos(BaseModel):
+    produto: str = Field(
+        default="etanol", description="Combustivel: gasolina, etanol, diesel ou diesel_s10"
     )
 
 
@@ -130,10 +157,60 @@ def _formatar_simulacao(resultado) -> str:
     return "\n".join(linhas)
 
 
+def _resolver_precos(
+    precos: RepositorioPrecosCombustivel | None,
+    estado: str,
+    informados: dict[str, float | None],
+) -> tuple[dict[str, float], str]:
+    """Decide o preco de cada combustivel e descreve a procedencia.
+
+    Preco dito pelo usuario tem prioridade. Sem isso, usa o levantamento da
+    ANP no estado pedido. Sem o dataset, cai para os valores de referencia.
+    """
+    escolhidos = {
+        "preco_gasolina": informados.get("preco_gasolina"),
+        "preco_etanol": informados.get("preco_etanol"),
+        "preco_diesel": informados.get("preco_diesel"),
+    }
+    padroes = {
+        "preco_gasolina": ("gasolina", PRECO_PADRAO_GASOLINA),
+        "preco_etanol": ("etanol", PRECO_PADRAO_ETANOL),
+        "preco_diesel": ("diesel", PRECO_PADRAO_DIESEL),
+    }
+
+    alvo = (estado or "BR").upper()
+    usou_anp = False
+    periodo = ""
+    uf_efetiva = alvo
+
+    for chave, (produto, padrao) in padroes.items():
+        if escolhidos[chave] is not None:
+            continue
+        apurado = precos.preco(produto, alvo) if precos is not None else None
+        if apurado is not None:
+            escolhidos[chave] = apurado.preco_mediano
+            usou_anp = True
+            periodo = apurado.descricao_periodo
+            uf_efetiva = apurado.uf
+        else:
+            escolhidos[chave] = padrao
+
+    if any(valor is not None for valor in informados.values()):
+        fonte = "valores informados por voce"
+    elif usou_anp:
+        onde = "media nacional" if uf_efetiva == "BR" else f"mediana de {uf_efetiva}"
+        fonte = f"{onde}, {periodo}"
+    else:
+        fonte = "valores de referencia, sem apuracao oficial disponivel"
+
+    return {chave: float(valor) for chave, valor in escolhidos.items()}, fonte
+
+
 def montar_ferramentas(
     catalogo: RepositorioCatalogo,
     base_vetorial: BaseVetorial | None,
     trechos_recuperados: int,
+    precos: RepositorioPrecosCombustivel | None = None,
 ) -> list[Any]:
     """Embrulha as funcoes puras como ferramentas do LangChain."""
     from langchain_core.tools import StructuredTool
@@ -147,14 +224,23 @@ def montar_ferramentas(
     def comparar(termos: list[str]) -> str:
         return catalogo_ferramentas.comparar_veiculos(catalogo, termos)
 
-    def simular(veiculo: str, **argumentos) -> str:
+    def simular(veiculo: str, estado: str = "BR", **argumentos) -> str:
         encontrados = catalogo.buscar_por_nome(veiculo)
         if not encontrados:
             return f"'{veiculo}' nao esta no catalogo, entao nao da para simular a viagem."
+
+        informados = {
+            chave: argumentos.pop(chave, None)
+            for chave in ("preco_gasolina", "preco_etanol", "preco_diesel")
+        }
+        valores, fonte = _resolver_precos(precos, estado, informados)
         try:
-            return _formatar_simulacao(simular_viagem(encontrados[0], **argumentos))
+            resultado = simular_viagem(
+                encontrados[0], **argumentos, **valores, fonte_precos=fonte
+            )
         except (DadosInsuficientes, ValueError) as erro:
             return f"Nao foi possivel simular: {erro}"
+        return _formatar_simulacao(resultado)
 
     ferramentas = [
         StructuredTool.from_function(
@@ -200,6 +286,37 @@ def montar_ferramentas(
         ),
     ]
 
+    if precos is not None:
+
+        def consultar(estado: str = "BR") -> str:
+            return consultar_precos(precos, estado)
+
+        def ranking(produto: str = "etanol") -> str:
+            return ranking_estados(precos, produto)
+
+        ferramentas += [
+            StructuredTool.from_function(
+                func=consultar,
+                name="consultar_precos_combustivel",
+                description=(
+                    "Precos de gasolina, etanol e diesel praticados num estado, "
+                    "apurados pela ANP, com a leitura de se o etanol compensa ali. "
+                    "Use quando a pergunta for sobre preco de combustivel e nao "
+                    "sobre uma viagem especifica."
+                ),
+                args_schema=ConsultaPrecos,
+            ),
+            StructuredTool.from_function(
+                func=ranking,
+                name="ranking_precos_por_estado",
+                description=(
+                    "Estados mais baratos e mais caros para um combustivel. "
+                    "Use para perguntas do tipo 'onde o etanol e mais barato'."
+                ),
+                args_schema=RankingPrecos,
+            ),
+        ]
+
     if base_vetorial is not None:
 
         def documentos(consulta: str) -> str:
@@ -228,12 +345,13 @@ def montar_agente(
     catalogo: RepositorioCatalogo,
     base_vetorial: BaseVetorial | None,
     trechos_recuperados: int = 4,
+    precos: RepositorioPrecosCombustivel | None = None,
 ) -> Any:
     """Devolve um executor pronto para receber perguntas."""
     from langchain.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-    ferramentas = montar_ferramentas(catalogo, base_vetorial, trechos_recuperados)
+    ferramentas = montar_ferramentas(catalogo, base_vetorial, trechos_recuperados, precos)
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", INSTRUCOES),
