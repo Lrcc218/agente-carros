@@ -1,0 +1,29 @@
+id,marca,termo_modelo,ano_desejado,categoria
+fiat_mobi,Fiat,MOBI,2024,hatch_popular
+fiat_argo,Fiat,ARGO,2024,hatch_popular
+fiat_strada,Fiat,STRADA,2024,picape_compacta
+vw_polo,VW - VolksWagen,POLO,2024,hatch_popular
+vw_nivus,VW - VolksWagen,NIVUS,2024,suv_compacto
+vw_tcross,VW - VolksWagen,T-CROSS,2024,suv_compacto
+gm_onix,GM - Chevrolet,ONIX,2024,hatch_popular
+gm_tracker,GM - Chevrolet,TRACKER,2024,suv_compacto
+hyundai_hb20,Hyundai,HB20,2024,hatch_popular
+hyundai_creta,Hyundai,CRETA,2024,suv_compacto
+renault_kwid,Renault,KWID,2024,hatch_entrada
+renault_duster,Renault,DUSTER,2024,suv_compacto
+nissan_kicks,Nissan,KICKS,2024,suv_compacto
+toyota_corolla,Toyota,COROLLA,2024,sedan_medio
+toyota_corolla_cross,Toyota,COROLLA CROSS,2024,suv_medio
+toyota_hilux,Toyota,Hilux CD SRV 4x4 2.8,2024,picape_media
+honda_city,Honda,CITY,2024,sedan_compacto
+honda_hrv,Honda,HR-V,2024,suv_compacto
+jeep_renegade,Jeep,RENEGADE,2024,suv_compacto
+jeep_compass,Jeep,COMPASS,2024,suv_medio
+byd_dolphin,BYD,DOLPHIN,2024,eletrico_hatch
+byd_seal,BYD,SEAL,2024,eletrico_sedan
+bmw_320i,BMW,320i,2024,sedan_premium
+bmw_x1,BMW,X1,2024,suv_premium
+mercedes_c200,Mercedes-Benz,C-200,2024,sedan_premium
+porsche_718,Porsche,718 Boxster,2024,esportivo_conversivel
+porsche_911,Porsche,911 Carrera,2024,esportivo
+ferrari_296,Ferrari,296,2024,superesportivo

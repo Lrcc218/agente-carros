@@ -1,0 +1,29 @@
+id,marca_fipe,modelo_fipe,ano_fipe,combustivel_fipe,codigo_fipe,preco_fipe,mes_referencia,coletado_em
+bmw_320i,BMW,320iA 2.0 Turbo/ActiveFlex 16V/GP  4p,2024,Gasolina,009164-2,257695.0,agosto de 2026,2026-08-10
+bmw_x1,BMW,X1 SDRIVE 18i GP 1.5 TB Aut.,2024,Gasolina,009304-1,250186.0,agosto de 2026,2026-08-10
+byd_dolphin,BYD,Dolphin EV GS (Elétrico),2024,Elétrico,095007-6,118020.0,agosto de 2026,2026-08-10
+byd_seal,BYD,Seal (Elétrico),2024,Elétrico,095008-4,204256.0,agosto de 2026,2026-08-10
+ferrari_296,Ferrari,296 GTB (Hibrido),2024,Híbrido,031054-9,3309948.0,agosto de 2026,2026-08-10
+fiat_argo,Fiat,ARGO 1.0 6V Flex,2024,Flex,001509-1,66063.0,agosto de 2026,2026-08-10
+fiat_mobi,Fiat,MOBI TREKKING 1.0 Flex 5p.,2024,Flex,001536-9,61174.0,agosto de 2026,2026-08-10
+fiat_strada,Fiat,Strada Freedom 1.3 Flex 8V CD,2024,Flex,001530-0,99429.0,agosto de 2026,2026-08-10
+gm_onix,GM - Chevrolet,ONIX HATCH 1.0 12V Flex 5p Mec.,2024,Flex,004519-5,69024.0,agosto de 2026,2026-08-10
+gm_tracker,GM - Chevrolet,TRACKER 1.0 Turbo 12V Flex Aut. ,2024,Flex,004526-8,100583.0,agosto de 2026,2026-08-10
+honda_city,Honda,CITY Sedan EX 1.5 Flex 16V 4p Aut.,2024,Flex,014061-9,107738.0,agosto de 2026,2026-08-10
+honda_hrv,Honda,HR-V EX 1.5 Flex Sensing 16V 5p Aut.,2024,Flex,014109-7,136896.0,agosto de 2026,2026-08-10
+hyundai_creta,Hyundai,Creta Action 1.6 16V Flex Aut.,2024,Flex,015190-4,101814.0,agosto de 2026,2026-08-10
+hyundai_hb20,Hyundai,HB20 Sense 1.0 Flex 12V Mec.,2024,Flex,015165-3,66644.0,agosto de 2026,2026-08-10
+jeep_compass,Jeep,COMPASS S T270 1.3 TB 4x2 Flex Aut.,2024,Flex,017074-7,161640.0,agosto de 2026,2026-08-10
+jeep_renegade,Jeep,Renegade T270 1.3 TB 4x2 Flex Aut.,2024,Flex,017092-5,101940.0,agosto de 2026,2026-08-10
+mercedes_c200,Mercedes-Benz,C-200 AMG Line EQ Boost 1.5 TB (Hib.),2024,Híbrido,021468-0,290046.0,agosto de 2026,2026-08-10
+nissan_kicks,Nissan,KICKS Sense 1.6 16V Flex Aut.,2024,Flex,023178-9,105525.0,agosto de 2026,2026-08-10
+porsche_718,Porsche,718 Boxster 2.0 300cv,2024,Gasolina,035069-9,571840.0,agosto de 2026,2026-08-10
+porsche_911,Porsche,911 Carrera T 3.0 ,2024,Gasolina,035106-7,858451.0,agosto de 2026,2026-08-10
+renault_duster,Renault,DUSTER Zen 1.6 16V Flex Mec.,2024,Flex,025303-0,81402.0,agosto de 2026,2026-08-10
+renault_kwid,Renault,KWID Zen 1.0 Flex 12V 5p Mec.,2024,Flex,025266-2,52177.0,agosto de 2026,2026-08-10
+toyota_corolla,Toyota,Corolla GLi 2.0 16V Flex Aut.,2024,Flex,002181-4,124188.0,agosto de 2026,2026-08-10
+toyota_corolla_cross,Toyota,Corolla Cross XR 2.0 16V Flex Aut.,2024,Flex,002201-2,141678.0,agosto de 2026,2026-08-10
+toyota_hilux,Toyota,Hilux CD SRV 4x4 2.8 TDI Diesel Aut.,2024,Diesel,002143-1,240413.0,agosto de 2026,2026-08-10
+vw_nivus,VW - VolksWagen,Nivus Sense 1.0 200 TSI Flex Aut.,2024,Flex,005548-4,103810.0,agosto de 2026,2026-08-10
+vw_polo,VW - VolksWagen,Polo 1.0 MPI Flex 12V 5p,2024,Flex,005533-6,74248.0,agosto de 2026,2026-08-10
+vw_tcross,VW - VolksWagen,T-Cross Sense 200 TSI 1.0 Flex 5p Aut.,2024,Flex,005520-4,100649.0,agosto de 2026,2026-08-10
