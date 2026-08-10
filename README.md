@@ -39,9 +39,14 @@ Sobre esse catalogo o agente sabe:
 - **Simulacao de viagem** — quantos litros e quantos reais uma viagem custa,
   separando cidade e estrada, comparando gasolina com etanol e informando
   quantos tanques cheios sao necessarios
+- **Precos de combustivel** — gasolina, etanol e diesel praticados em cada
+  estado, apurados pela ANP, e onde o etanol compensa
 - **Documentos oficiais** — metodologia de medicao de consumo e significado das
   faixas de eficiencia energetica, respondidos por busca semantica nos PDFs do
   Inmetro
+
+A simulacao usa o preco do **estado** de quem pergunta. A mesma viagem no mesmo
+carro custa diferente saindo de Sao Paulo e do Amapa, e o agente reflete isso.
 
 ## Exemplos de perguntas
 
@@ -57,30 +62,35 @@ Perguntas que o agente responde:
 | "Qual a potencia e o torque do Compass?" | Ficha tecnica |
 | "O que significa a classificacao A na etiqueta do Inmetro?" | Busca semantica nos PDFs oficiais |
 | "Quanto custa o Porsche 911 na FIPE?" | Consulta de preco com mes de referencia |
+| "Onde o etanol e mais barato no Brasil?" | Ranking por estado com dados da ANP |
+| "Compensa abastecer com etanol aqui em Minas?" | Precos da ANP em MG e razao etanol/gasolina |
 
-Resposta real do agente para a viagem Sao Paulo–Rio, ida e volta, no Corolla:
+Resposta real da ferramenta de simulacao, para uma viagem de 300 km saindo de
+Minas Gerais no Jeep Compass:
 
 ```
-Simulacao para Toyota Corolla GLi 2.0 Flex 2024
-  Distancia total: 860 km (ida e volta)
-  Divisao do percurso: 10% cidade, 90% estrada
+Simulacao para Jeep Compass Serie S T270 1.3 Turbo 2024
+  Distancia total: 300 km
+  Divisao do percurso: 40% cidade, 60% estrada
 
-  Gasolina a R$ 6.20/litro:
-    Consumo medio na viagem: 14.23 km/l
-    Combustivel necessario: 60.43 litros
-    Custo total: R$ 374.65
-    Custo por km: R$ 0.436
-    Tanques cheios: 1.21
+  Gasolina a R$ 6.32/litro:
+    Consumo medio na viagem: 11.21 km/l
+    Combustivel necessario: 26.76 litros
+    Custo total: R$ 169.11
+    Custo por km: R$ 0.564
+    Tanques cheios: 0.49
 
-  Etanol a R$ 4.40/litro:
-    Consumo medio na viagem: 9.89 km/l
-    Combustivel necessario: 87.0 litros
-    Custo total: R$ 382.78
-    Custo por km: R$ 0.445
-    Tanques cheios: 1.74
+  Etanol a R$ 3.99/litro:
+    Consumo medio na viagem: 8.03 km/l
+    Combustivel necessario: 37.37 litros
+    Custo total: R$ 149.10
+    Custo por km: R$ 0.497
+    Tanques cheios: 0.68
 
-  Nos precos informados, gasolina sai R$ 8.13 mais barato nesta viagem.
-  Consumo conforme o PBE Veicular do Inmetro, versao TOYOTA COROLLA GLI 20 2.0-16V.
+  Nos precos informados, etanol sai R$ 20.01 mais barato nesta viagem.
+  Precos de combustivel: mediana de MG, levantamento da ANP de 2026-07-01 a 2026-07-31.
+  Consumo conforme o PBE Veicular do Inmetro, versao JEEP COMPASS SERIE S T 1.3T-16V.
+  Valores de referencia em condicoes de ensaio.
 ```
 
 ## O que ele nao faz
@@ -109,13 +119,13 @@ O agente e **hibrido**: cada tipo de pergunta vai para o mecanismo certo.
         +-----------------------+-----------------------+
         |                       |                       |
   buscar_veiculo          simular_viagem        buscar_documentos
-  listar_veiculos                |               (RAG semantico)
-  comparar_veiculos              |                       |
+  listar_veiculos       consultar_precos         (RAG semantico)
+  comparar_veiculos      ranking_precos                  |
         |                        |                       |
    pandas sobre CSV      calculo em Python         FAISS + embeddings
         |                        |                       |
-  precos FIPE +            sem LLM na conta        PDFs do Inmetro
-  ficha + consumo
+  precos FIPE +           precos da ANP           PDFs do Inmetro
+  ficha + consumo         por estado              + manuais opcionais
 ```
 
 A razao para esse desenho: **RAG nao faz conta nem comparacao numerica**. Busca
@@ -138,6 +148,7 @@ resultado e versionado no repositorio:
 ```
 tempo de construcao (scripts, rodam sob demanda)
   coletar_fipe.py           API da FIPE       -> dados/processados/precos_fipe.csv
+  coletar_precos_anp.py     CSV aberto da ANP -> dados/processados/precos_combustivel_anp.csv
   baixar_documentos.py      Inmetro           -> dados/brutos/documentos/
   extrair_consumo_pbev.py   PDFs do Inmetro   -> dados/processados/consumo_pbev.csv
   indexar_documentos.py     PDFs + embeddings -> dados/processados/indice_faiss/
@@ -163,9 +174,11 @@ src/agente_carros/
     llm_nvidia.py      Implementacao com NVIDIA NIM
     vetorial_faiss.py  Implementacao com FAISS
     catalogo_csv.py    Implementacao com pandas sobre CSV
+    precos_anp_csv.py  Precos de combustivel por estado
   ferramentas/
     consultar_catalogo.py  Busca, filtro, ordenacao e comparacao
     simular_viagem.py      Calculo do custo da viagem
+    consultar_precos.py    Precos de combustivel e ranking por estado
     buscar_documentos.py   Busca semantica
   agente.py            Prompt, esquemas das ferramentas e executor
   fabrica.py           Wiring: liga implementacoes concretas as portas
@@ -241,7 +254,8 @@ python app/cli.py "quanto gasto de Sao Paulo ao Rio com o Corolla?"
 ### Atualizar os dados
 
 ```bash
-python scripts/coletar_fipe.py          # precos da FIPE
+python scripts/coletar_fipe.py          # precos dos veiculos, FIPE
+python scripts/coletar_precos_anp.py    # precos de combustivel por estado, ANP
 python scripts/baixar_documentos.py     # PDFs do Inmetro
 python scripts/extrair_consumo_pbev.py  # consumo oficial
 python scripts/indexar_documentos.py    # indice vetorial
@@ -277,10 +291,16 @@ Render, Vercel ou em um servidor proprio trocando apenas a camada de `app/`.
 
 | Dado | Fonte | Estado |
 | --- | --- | --- |
-| Preco | Tabela FIPE, via API publica | Coletado automaticamente |
+| Preco do veiculo | Tabela FIPE, via API publica | Coletado automaticamente |
 | Consumo e autonomia | PBE Veicular 2026 e 2025, Inmetro | Extraido do PDF oficial |
+| Preco de combustivel | Levantamento de precos da ANP, CSV aberto | Coletado automaticamente |
 | Metodologia de consumo | Inmetro | PDF oficial indexado |
+| Manuais de montadora | Sites oficiais das marcas | Inclusao manual, opcional |
 | Ficha tecnica | Curadoria manual | Em conferencia |
+
+Para acrescentar manuais do proprietario ao indice, veja
+[`docs/MANUAIS.md`](docs/MANUAIS.md). Os sites das montadoras bloqueiam
+download automatizado, entao esses PDFs entram a mao.
 
 Detalhes de procedencia, criterios de selecao e divergencias entre as fontes
 estao em [`docs/FONTES.md`](docs/FONTES.md).
@@ -295,8 +315,9 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-30 testes cobrindo o calculo da viagem e as consultas ao catalogo — as partes
-onde um erro numerico viraria uma resposta errada com aparencia de certeza.
+42 testes cobrindo o calculo da viagem, as consultas ao catalogo e a resolucao
+de precos por estado — as partes onde um erro numerico viraria uma resposta
+errada com aparencia de certeza.
 
 Um deles merece nota: a simulacao **soma os litros gastos em cada trecho** em
 vez de aplicar a media dos consumos sobre a distancia total. Media aritmetica
@@ -316,8 +337,14 @@ fixando esse comportamento.
 - **Eletricos sem custo de viagem.** O Inmetro publica km por litro equivalente
   e autonomia, mas nao o consumo em kWh. Incluir kWh/100km por modelo habilitaria
   a simulacao.
-- **Preco congelado na coleta.** Os valores tem o mes de referencia registrado.
-  Rodar `coletar_fipe.py` atualiza.
+- **Precos congelados na coleta.** Valores da FIPE e da ANP tem o periodo de
+  referencia registrado. Rodar os scripts de coleta atualiza.
+- **Preco de combustivel por estado, nao por cidade.** A ANP publica posto a
+  posto, mas o resumo agrega por unidade da federacao. Dentro de um estado o
+  preco varia bastante — a consulta informa a faixa entre o menor e o maior.
+- **Manuais de montadora sao opcionais e desiguais.** Se voce indexar poucos
+  manuais, o agente responde em profundidade sobre esses modelos e nada sobre
+  os demais. Veja [`docs/MANUAIS.md`](docs/MANUAIS.md).
 - **Consumo de ensaio.** Os numeros do Inmetro vem de condicoes controladas. O
   consumo real varia com carga, ar-condicionado, relevo e conducao. O agente
   informa isso em toda simulacao.

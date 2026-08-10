@@ -74,7 +74,59 @@ mesmo conjunto. O que foi encontrado neste catalogo:
   Veicular, foi usada a versao mais proxima. A coluna `versao_pbev` registra
   exatamente qual linha do Inmetro alimentou cada modelo.
 
-## 3. Ficha tecnica
+## 3. Precos de combustivel — ANP
+
+| Item | Valor |
+| --- | --- |
+| Fonte | Levantamento de precos de combustiveis, ANP |
+| Pagina | https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis |
+| Dataset | `dados/processados/precos_combustivel_anp.csv` |
+| Script | `scripts/coletar_precos_anp.py` |
+| Estado | Coletado automaticamente |
+
+A ANP publica o levantamento semanal em CSV aberto, posto a posto, com regiao,
+estado, municipio, produto, data da coleta e valor de venda. O script baixa o
+arquivo mais recente de gasolina/etanol e de diesel e agrega por estado.
+
+**Mediana, nao media.** A base inclui postos de rodovia e de regioes isoladas
+com precos muito acima do restante. A media seria puxada por esses extremos; a
+mediana representa melhor o que se paga. O dataset guarda tambem minimo, maximo
+e numero de postos, para que a dispersao fique visivel.
+
+**Descoberta dos links.** O script le a pagina da ANP e escolhe o arquivo mais
+recente, em vez de montar a URL por regra. Os nomes mudam a cada mes — ha
+`01-dados-abertos-precos-gasolina-etanol.csv`, mas tambem
+`02-cados-abertos-preco-gasolina-etanol.csv`, com erro de digitacao, e
+`06-dados-abertos-precos-2026-06-gasolina-etanol.csv`. Alem disso ha meses
+faltando na sequencia. Montar a URL quebraria na proxima atualizacao.
+
+Para atualizar:
+
+```bash
+python scripts/coletar_precos_anp.py
+```
+
+## 4. Manuais de montadora
+
+| Item | Valor |
+| --- | --- |
+| Fonte | Sites oficiais das montadoras |
+| Pasta | `dados/brutos/documentos/manuais/` |
+| Catalogo | `dados/manuais.csv` |
+| Estado | Inclusao manual, opcional |
+
+Diferente das demais, esta fonte nao e automatizavel. Verificacao feita durante
+a construcao do projeto:
+
+- **Volkswagen** — 279 PDFs com link direto na pagina de manuais, download
+  automatizado funciona
+- **Toyota** — a pagina abre, mas o servidor que hospeda os PDFs devolve 403
+- **Honda** — a propria pagina de manuais devolve 403
+
+Como a cobertura seria desigual entre as marcas, nenhum manual entra por
+padrao. Quem quiser inclui os seus seguindo [`MANUAIS.md`](MANUAIS.md).
+
+## 5. Ficha tecnica
 
 | Item | Valor |
 | --- | --- |
@@ -100,7 +152,7 @@ Conferencia pendente, por modelo:
 - [ ] Capacidade do tanque e do porta-malas
 - [ ] Cambio e tracao da versao exata
 
-## 4. Escopo do catalogo
+## 6. Escopo do catalogo
 
 28 modelos, ano 2024, cobrindo hatch de entrada, hatch popular, picape
 compacta e media, SUV compacto e medio, sedan compacto, medio e premium,
