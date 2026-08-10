@@ -14,6 +14,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import shutil
 import sys
@@ -46,6 +47,37 @@ def carregar_titulos(pasta: Path) -> dict[str, str]:
     return titulos
 
 
+def carregar_titulos_de_manuais(catalogo_manuais: Path) -> dict[str, str]:
+    """Le os titulos dos manuais adicionados a mao.
+
+    Manuais de montadora nao podem ser baixados por script — os sites
+    bloqueiam acesso automatizado. Quem quiser inclui-los baixa o PDF pelo
+    navegador, coloca na pasta de manuais e declara o titulo aqui. Sem
+    declaracao, o nome do arquivo vira o titulo.
+    """
+    if not catalogo_manuais.exists():
+        return {}
+
+    titulos: dict[str, str] = {}
+    with catalogo_manuais.open(encoding="utf-8") as arquivo:
+        for linha in csv.DictReader(arquivo):
+            nome = (linha.get("arquivo") or "").strip()
+            if not nome:
+                continue
+            partes = [
+                (linha.get("marca") or "").strip(),
+                (linha.get("modelo") or "").strip(),
+                (linha.get("documento") or "Manual do proprietario").strip(),
+            ]
+            titulos[nome] = " ".join(parte for parte in partes if parte)
+    return titulos
+
+
+def nome_legivel(arquivo: Path) -> str:
+    """Titulo de emergencia, derivado do nome do arquivo."""
+    return arquivo.stem.replace("_", " ").replace("-", " ").strip()
+
+
 def indexar(pasta_documentos: Path, destino: Path) -> None:
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.vectorstores import FAISS
@@ -54,7 +86,8 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
     from agente_carros.adaptadores.llm_nvidia import ProvedorNVIDIA
 
     config = carregar_configuracao()
-    pdfs = sorted(pasta_documentos.glob("*.pdf"))
+    # rglob para alcancar tambem a subpasta de manuais adicionados a mao.
+    pdfs = sorted(pasta_documentos.rglob("*.pdf"))
     if not pdfs:
         raise SystemExit(
             f"Nenhum PDF em {pasta_documentos}. "
@@ -62,14 +95,24 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
         )
 
     titulos = carregar_titulos(pasta_documentos)
+    titulos |= carregar_titulos_de_manuais(config.caminhos.dados / "manuais.csv")
+
     paginas = []
     for pdf in pdfs:
-        carregadas = PyPDFLoader(str(pdf)).load()
+        try:
+            carregadas = PyPDFLoader(str(pdf)).load()
+        except Exception as erro:  # noqa: BLE001 - um PDF ruim nao pode parar a indexacao
+            print(f"  IGNORADO  {pdf.name}: nao foi possivel ler ({erro})")
+            continue
+
+        eh_manual = pdf.parent.name == "manuais"
         for pagina in carregadas:
-            pagina.metadata["titulo"] = titulos.get(pdf.name, pdf.stem)
+            pagina.metadata["titulo"] = titulos.get(pdf.name, nome_legivel(pdf))
             pagina.metadata["arquivo"] = pdf.name
+            pagina.metadata["tipo"] = "manual" if eh_manual else "documento_oficial"
         paginas.extend(carregadas)
-        print(f"  lido  {pdf.name} ({len(carregadas)} paginas)")
+        rotulo = "manual" if eh_manual else "oficial"
+        print(f"  lido  [{rotulo}] {pdf.name} ({len(carregadas)} paginas)")
 
     divisor = RecursiveCharacterTextSplitter(
         chunk_size=TAMANHO_TRECHO, chunk_overlap=SOBREPOSICAO

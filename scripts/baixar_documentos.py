@@ -114,6 +114,8 @@ def main() -> None:
 
     destino = config.caminhos.documentos
     destino.mkdir(parents=True, exist_ok=True)
+    # Manuais de montadora entram a mao aqui; ver docs/MANUAIS.md.
+    (destino / "manuais").mkdir(exist_ok=True)
 
     print(f"Baixando {len(DOCUMENTOS)} documentos para {destino.relative_to(RAIZ)}/")
     sucessos = sum(baixar(documento, destino, argumentos.forcar) for documento in DOCUMENTOS)
