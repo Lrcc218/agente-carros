@@ -6,6 +6,7 @@ langchain==0.3.7
 langchain-core==0.3.15
 langchain-community==0.3.5
 langchain-nvidia-ai-endpoints==0.3.5
+langchain-google-genai==2.0.7
 
 # Base vetorial e leitura de documentos
 faiss-cpu==1.8.0.post1

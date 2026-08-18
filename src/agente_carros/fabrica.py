@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from agente_carros.adaptadores.catalogo_csv import CatalogoCSV
+from agente_carros.adaptadores.llm_gemini import ProvedorGemini
 from agente_carros.adaptadores.llm_nvidia import ProvedorNVIDIA
 from agente_carros.adaptadores.precos_anp_csv import PrecosANP
 from agente_carros.adaptadores.vetorial_faiss import IndiceNaoEncontrado, VetorialFAISS
@@ -23,7 +24,7 @@ from agente_carros.dominio.portas import (
     RepositorioPrecosCombustivel,
 )
 
-PROVEDORES = {"nvidia": ProvedorNVIDIA}
+PROVEDORES = {"gemini": ProvedorGemini, "nvidia": ProvedorNVIDIA}
 
 
 @dataclass
@@ -52,7 +53,7 @@ def criar_catalogo(config: Configuracao) -> RepositorioCatalogo:
     return CatalogoCSV(
         fichas=caminhos.fichas_tecnicas,
         precos=caminhos.precos_fipe,
-        consumo=caminhos.processados / "consumo_pbev.csv",
+        consumo=caminhos.consumo_pbev,
     )
 
 
@@ -62,7 +63,7 @@ def criar_precos_combustivel(config: Configuracao) -> RepositorioPrecosCombustiv
     Sem ele a simulacao continua funcionando com valores de referencia, mas
     perde o preco por estado.
     """
-    repositorio = PrecosANP(config.caminhos.processados / "precos_combustivel_anp.csv")
+    repositorio = PrecosANP(config.caminhos.precos_combustivel)
     return repositorio if repositorio.disponivel else None
 
 
