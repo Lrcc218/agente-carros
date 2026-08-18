@@ -171,6 +171,7 @@ src/agente_carros/
     modelos.py         Veiculo, ResultadoViagem, CustoPorCombustivel
     portas.py          Contratos: ProvedorLLM, BaseVetorial, RepositorioCatalogo
   adaptadores/
+    llm_gemini.py      Implementacao com Google Gemini
     llm_nvidia.py      Implementacao com NVIDIA NIM
     vetorial_faiss.py  Implementacao com FAISS
     catalogo_csv.py    Implementacao com pandas sobre CSV
@@ -185,6 +186,15 @@ src/agente_carros/
 app/
   streamlit_app.py     Interface web
   cli.py               Interface de terminal, mesmo agente
+scripts/
+  configurar_chave.py     Grava a chave de API no .env
+  coletar_fipe.py         Precos dos veiculos
+  coletar_precos_anp.py   Precos de combustivel por estado
+  baixar_documentos.py    PDFs oficiais do Inmetro
+  extrair_consumo_pbev.py Consumo oficial, extraido dos PDFs
+  indexar_documentos.py   Indice vetorial
+  testar_provedor.py      Testa a chave isoladamente
+  diagnosticar.py         Confere o ambiente inteiro
 ```
 
 As portas sao `Protocol` do Python: qualquer classe com os metodos certos
@@ -193,9 +203,16 @@ serve, sem heranca. **Trocar de tecnologia mexe em um arquivo:**
 | Trocar | O que fazer |
 | --- | --- |
 | Provedor de IA | Nova classe com `modelo_chat` e `modelo_embedding`, registrar em `PROVEDORES` na fabrica |
+| Entre Gemini e NVIDIA | Trocar `PROVEDOR_LLM` no `.env`; nada mais muda |
 | Base vetorial | Nova classe com `buscar`, apontar `criar_base_vetorial` |
 | Fonte de dados | Nova classe com `listar`, `buscar_por_nome` e `filtrar`, apontar `criar_catalogo` |
 | Interface | Novo arquivo em `app/` chamando `criar_agente()`; a CLI ja demonstra isso |
+
+Essa intercambialidade nao e teorica. Durante a construcao do projeto o acesso
+a API da NVIDIA foi bloqueado na verificacao de conta, e a migracao para o
+Gemini custou **um arquivo novo e uma linha na fabrica**. Agente, ferramentas,
+dados, testes e interface nao foram tocados. O historico de commits registra a
+mudanca inteira.
 
 ## Tecnologias
 
@@ -203,7 +220,8 @@ serve, sem heranca. **Trocar de tecnologia mexe em um arquivo:**
 | --- | --- |
 | Python 3.10+ | Linguagem |
 | LangChain | Orquestracao do agente e tool calling |
-| NVIDIA NIM | Modelo de chat e de embeddings |
+| Google Gemini | Modelo de chat e de embeddings (padrao) |
+| NVIDIA NIM | Provedor alternativo, selecionavel por variavel de ambiente |
 | FAISS | Indice vetorial local |
 | pandas | Consulta aos dados estruturados |
 | pypdf | Leitura dos PDFs do Inmetro |
@@ -212,8 +230,9 @@ serve, sem heranca. **Trocar de tecnologia mexe em um arquivo:**
 
 ## Como executar
 
-Pre-requisitos: Python 3.10 ou superior e uma chave de API do
-[build.nvidia.com](https://build.nvidia.com) (gratuita, sem cartao).
+Pre-requisitos: Python 3.10 ou superior e uma chave de API gratuita de um dos
+provedores suportados — [Google AI Studio](https://aistudio.google.com/apikey)
+ou [build.nvidia.com](https://build.nvidia.com). Nenhum dos dois pede cartao.
 
 ```bash
 git clone <url-do-repositorio>
@@ -223,26 +242,43 @@ source .venv/bin/activate        # no Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Configure a chave:
+Salve a chave num arquivo de texto fora do projeto e registre-a:
 
 ```bash
-cp .env.example .env
+python scripts/configurar_chave.py /caminho/da/chave
 ```
 
-Abra o `.env` e preencha `NVIDIA_API_KEY`.
+O script deduz o provedor pelo prefixo da chave, grava o `.env` com permissao
+restrita e nunca imprime o valor. Se preferir a mao, copie `.env.example` para
+`.env` e preencha `GOOGLE_API_KEY` ou `NVIDIA_API_KEY`.
 
-Os dados de preco e consumo ja vem no repositorio. Falta apenas construir o
-indice dos documentos, que depende da chave de API:
+Os dados de preco e consumo ja vem no repositorio. Falta baixar os PDFs e
+construir o indice, que depende da chave:
 
 ```bash
 python scripts/baixar_documentos.py
 python scripts/indexar_documentos.py
 ```
 
+Confira se esta tudo no lugar:
+
+```bash
+python scripts/diagnosticar.py
+```
+
 Suba a aplicacao:
 
 ```bash
 streamlit run app/streamlit_app.py
+```
+
+Quem preferir, o `Makefile` encadeia tudo:
+
+```bash
+make instalar
+make chave ARQ=/caminho/da/chave
+make tudo
+make rodar
 ```
 
 Ou use pelo terminal:
@@ -276,7 +312,8 @@ O projeto foi publicado no **Streamlit Community Cloud**:
 5. Em **Advanced settings → Secrets**, adicione a chave:
 
    ```toml
-   NVIDIA_API_KEY = "sua-chave-aqui"
+   PROVEDOR_LLM = "gemini"
+   GOOGLE_API_KEY = "sua-chave-aqui"
    ```
 
 6. Clique em **Deploy**
@@ -315,8 +352,8 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-42 testes cobrindo o calculo da viagem, as consultas ao catalogo e a resolucao
-de precos por estado — as partes onde um erro numerico viraria uma resposta
+53 testes cobrindo o calculo da viagem, as consultas ao catalogo, a resolucao
+de precos por estado e a selecao de provedor e credencial — as partes onde um erro numerico viraria uma resposta
 errada com aparencia de certeza.
 
 Um deles merece nota: a simulacao **soma os litros gastos em cada trecho** em

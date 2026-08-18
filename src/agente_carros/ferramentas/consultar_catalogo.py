@@ -10,8 +10,8 @@ linguagem, que precisa dos numeros ja legiveis para citar na resposta.
 
 from __future__ import annotations
 
-from agente_carros.dominio.portas import RepositorioCatalogo
 from agente_carros.dominio.modelos import Veiculo
+from agente_carros.dominio.portas import RepositorioCatalogo
 
 LIMITE_RESULTADOS = 10
 

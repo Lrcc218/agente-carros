@@ -161,3 +161,25 @@ eletricos, esportivos e superesportivo.
 O catalogo e deliberadamente restrito. Ampliar significa acrescentar linhas
 em `dados/catalogo_semente.csv` e em `dados/processados/fichas_tecnicas.csv`
 usando o mesmo `id`, e rodar novamente a coleta de precos.
+
+
+## 7. Provedor de modelos de IA
+
+| Item | Valor |
+| --- | --- |
+| Padrao | Google Gemini (`gemini-2.0-flash` e `models/text-embedding-004`) |
+| Alternativa | NVIDIA NIM (`meta/llama-3.3-70b-instruct` e `nvidia/nv-embedqa-e5-v5`) |
+| Selecao | Variavel `PROVEDOR_LLM` no `.env` |
+
+Os dois provedores implementam a mesma porta `ProvedorLLM`. Trocar entre eles
+nao exige alteracao de codigo.
+
+O Gemini e o padrao por decisao operacional: durante a construcao do projeto a
+conta da NVIDIA ficou sem permissao de inferencia — a chave era gerada, mas
+toda chamada a `/v1/chat/completions` e a `/v1/embeddings` respondia
+`403 Authorization failed`, igual a uma chave invalida. Como a liberacao depende
+do suporte da NVIDIA, o projeto passou a usar o Gemini, que libera a chave na
+hora e sem cadastro adicional.
+
+O adaptador da NVIDIA permanece no projeto e volta a ser usado trocando uma
+linha no `.env`.
