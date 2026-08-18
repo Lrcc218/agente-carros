@@ -15,6 +15,7 @@ import streamlit as st
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "src"))
 
+from agente_carros.agente import responder as responder_agente  # noqa: E402
 from agente_carros.config import carregar_configuracao  # noqa: E402
 from agente_carros.fabrica import criar_agente  # noqa: E402
 
@@ -69,14 +70,30 @@ def mostrar_barra_lateral(montagem) -> None:
             st.rerun()
 
 
+def mensagem_de_erro(erro: Exception) -> str:
+    """Traduz falhas tecnicas em algo acionavel para quem esta usando."""
+    texto = str(erro)
+    if "429" in texto or "RESOURCE_EXHAUSTED" in texto or "quota" in texto.lower():
+        return (
+            "A cota gratuita do provedor de IA foi atingida. As camadas gratuitas "
+            "limitam quantas perguntas podem ser feitas por dia. Tente de novo mais "
+            "tarde, ou configure outro modelo em `MODELO_CHAT`."
+        )
+    if "API key" in texto or "401" in texto or "403" in texto:
+        return (
+            "A chave de API foi recusada pelo provedor. Confira se ela e valida e se "
+            "a conta tem permissao de inferencia."
+        )
+    return f"Nao consegui responder agora. Detalhe tecnico: {texto[:300]}"
+
+
 def responder(montagem, pergunta: str) -> str:
     historico = []
     for mensagem in st.session_state.mensagens[:-1]:
         papel = "human" if mensagem["papel"] == "user" else "ai"
         historico.append((papel, mensagem["conteudo"]))
 
-    resposta = montagem.executor.invoke({"pergunta": pergunta, "historico": historico})
-    return resposta["output"]
+    return responder_agente(montagem.executor, pergunta, historico)
 
 
 def main() -> None:
@@ -128,7 +145,7 @@ def main() -> None:
             try:
                 resposta = responder(montagem, pergunta)
             except Exception as erro:  # noqa: BLE001 - falha de rede ou de cota
-                resposta = f"Nao consegui responder agora: {erro}"
+                resposta = mensagem_de_erro(erro)
         st.markdown(resposta)
 
     st.session_state.mensagens.append({"papel": "assistant", "conteudo": resposta})

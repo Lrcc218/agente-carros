@@ -1,0 +1,12 @@
+{
+  "gerado_em": "2026-08-18",
+  "modelo_embedding": "models/gemini-embedding-001",
+  "documentos": [
+    "pbev_2025_tabela_consumo.pdf",
+    "pbev_2026_tabela_consumo.pdf",
+    "pbev_metodologia_consumo.pdf"
+  ],
+  "trechos": 250,
+  "tamanho_trecho": 1200,
+  "sobreposicao": 150
+}

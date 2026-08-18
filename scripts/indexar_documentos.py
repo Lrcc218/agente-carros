@@ -18,6 +18,7 @@ import csv
 import json
 import shutil
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
@@ -28,6 +29,15 @@ from agente_carros.config import carregar_configuracao  # noqa: E402
 
 TAMANHO_TRECHO = 1200
 SOBREPOSICAO = 150
+
+# A camada gratuita das APIs de embedding limita requisicoes por minuto.
+# Enviar centenas de trechos de uma vez estoura o limite e devolve 429, entao
+# a indexacao vai em lotes pequenos, com pausa entre eles e reenvio com espera
+# crescente quando o limite e atingido.
+TAMANHO_LOTE = 16
+PAUSA_ENTRE_LOTES = 1.5
+TENTATIVAS = 5
+ESPERA_INICIAL = 20
 
 
 def carregar_titulos(pasta: Path) -> dict[str, str]:
@@ -78,12 +88,54 @@ def nome_legivel(arquivo: Path) -> str:
     return arquivo.stem.replace("_", " ").replace("-", " ").strip()
 
 
+def indexar_em_lotes(trechos: list, embeddings, FAISS) -> object:
+    """Gera os embeddings aos poucos, respeitando o limite de requisicoes.
+
+    Devolve o indice FAISS montado. O primeiro lote cria o indice e os
+    seguintes sao anexados, o que tambem mantem o uso de memoria estavel em
+    documentos grandes.
+    """
+    indice = None
+    total = len(trechos)
+
+    for inicio in range(0, total, TAMANHO_LOTE):
+        lote = trechos[inicio : inicio + TAMANHO_LOTE]
+        espera = ESPERA_INICIAL
+
+        for tentativa in range(1, TENTATIVAS + 1):
+            try:
+                if indice is None:
+                    indice = FAISS.from_documents(lote, embeddings)
+                else:
+                    indice.add_documents(lote)
+                break
+            except Exception as erro:  # noqa: BLE001 - o provedor sinaliza limite de varias formas
+                limite_atingido = "429" in str(erro) or "quota" in str(erro).lower()
+                if not limite_atingido or tentativa == TENTATIVAS:
+                    raise
+                print(
+                    f"    limite de requisicoes atingido; "
+                    f"aguardando {espera}s (tentativa {tentativa}/{TENTATIVAS})"
+                )
+                time.sleep(espera)
+                espera *= 2
+
+        processados = min(inicio + TAMANHO_LOTE, total)
+        print(f"  embeddings: {processados}/{total} trechos", flush=True)
+        if processados < total:
+            time.sleep(PAUSA_ENTRE_LOTES)
+
+    if indice is None:
+        raise SystemExit("Nenhum trecho para indexar.")
+    return indice
+
+
 def indexar(pasta_documentos: Path, destino: Path) -> None:
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.vectorstores import FAISS
     from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-    from agente_carros.adaptadores.llm_nvidia import ProvedorNVIDIA
+    from agente_carros.fabrica import criar_provedor
 
     config = carregar_configuracao()
     # rglob para alcancar tambem a subpasta de manuais adicionados a mao.
@@ -120,8 +172,10 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
     trechos = divisor.split_documents(paginas)
     print(f"\n{len(trechos)} trechos gerados. Calculando embeddings...")
 
-    provedor = ProvedorNVIDIA(config)
-    indice = FAISS.from_documents(trechos, provedor.modelo_embedding())
+    # Pela fabrica, e nao por um adaptador especifico: o script deve
+    # indexar com o mesmo provedor que a aplicacao usa para consultar.
+    provedor = criar_provedor(config)
+    indice = indexar_em_lotes(trechos, provedor.modelo_embedding(), FAISS)
 
     if destino.exists():
         shutil.rmtree(destino)

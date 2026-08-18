@@ -16,7 +16,13 @@ import agente_carros.config as modulo_config
 
 @pytest.fixture
 def ambiente(monkeypatch):
-    """Isola as variaveis de ambiente e recarrega a configuracao."""
+    """Isola as variaveis de ambiente e recarrega a configuracao.
+
+    Neutraliza o `load_dotenv`: sem isso o `.env` da maquina de quem roda os
+    testes repovoa as variaveis durante o recarregamento do modulo, e o teste
+    passa a medir a configuracao real em vez da configuracao do caso.
+    """
+    monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
 
     def configurar(**valores):
         for nome in (

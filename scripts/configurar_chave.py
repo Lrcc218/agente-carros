@@ -25,9 +25,12 @@ sys.path.insert(0, str(RAIZ / "src"))
 from agente_carros.config import VARIAVEIS_DE_CHAVE  # noqa: E402
 
 # Prefixos conhecidos, para deduzir o provedor sem o usuario informar.
+# O Google trocou o formato das chaves do AI Studio: as antigas comecam
+# com AIza, as novas com AQ. Ambas continuam validas.
 PREFIXOS = {
     "nvapi-": "nvidia",
     "AIza": "gemini",
+    "AQ.": "gemini",
 }
 
 MARCADORES = ("COLE_A_CHAVE_AQUI", "COLE_O_TOKEN_AQUI", "cole", "sua-chave")

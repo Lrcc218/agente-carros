@@ -17,6 +17,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "src"))
 
+from agente_carros.agente import responder  # noqa: E402
 from agente_carros.fabrica import criar_agente  # noqa: E402
 
 
@@ -27,7 +28,7 @@ def main() -> None:
 
     if len(sys.argv) > 1:
         pergunta = " ".join(sys.argv[1:])
-        print(montagem.executor.invoke({"pergunta": pergunta})["output"])
+        print(responder(montagem.executor, pergunta))
         return
 
     print("Consultor de carros. Digite sua pergunta ou 'sair' para encerrar.\n")
@@ -43,9 +44,9 @@ def main() -> None:
         if not pergunta:
             continue
 
-        resposta = montagem.executor.invoke({"pergunta": pergunta, "historico": historico})
-        print(f"\n{resposta['output']}\n")
-        historico += [("human", pergunta), ("ai", resposta["output"])]
+        resposta = responder(montagem.executor, pergunta, historico)
+        print(f"\n{resposta}\n")
+        historico += [("human", pergunta), ("ai", resposta)]
 
 
 if __name__ == "__main__":

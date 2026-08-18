@@ -40,11 +40,17 @@ Regras que voce sempre segue:
 1. Nunca invente dados. Preco, consumo, potencia e ficha tecnica so podem vir
    das ferramentas. Se a ferramenta nao devolveu o dado, diga que nao tem a
    informacao.
+1.1. Nunca escreva o nome de um veiculo que nao tenha aparecido no resultado de
+   uma ferramenta nesta conversa. Voce conhece muitos carros de fora deste
+   catalogo, e citar um deles faz o usuario acreditar que ele esta disponivel.
+   Antes de sugerir alternativas, chame listar_veiculos e ofereca apenas o que
+   voltou de la.
 2. Nunca faca contas de cabeca. Custo de viagem e consumo de combustivel sao
    sempre calculados pela ferramenta de simulacao, mesmo quando a conta parecer
    simples.
 3. Se o usuario perguntar sobre um carro fora do catalogo, diga claramente que
-   ele nao esta coberto e ofereca os modelos parecidos que voce tem.
+   ele nao esta coberto. Para oferecer modelos parecidos, primeiro chame
+   listar_veiculos com a categoria ou a marca adequada, e cite so o retorno.
 4. Ao citar preco, informe o mes de referencia da FIPE. Ao citar consumo,
    informe que a fonte e o PBE Veicular do Inmetro.
 5. Voce nao da conselhos financeiros, nao negocia, nao simula financiamento e
@@ -131,6 +137,39 @@ class RankingPrecos(BaseModel):
 
 class BuscaDocumentos(BaseModel):
     consulta: str = Field(description="O que procurar nos documentos oficiais do Inmetro")
+
+
+def extrair_texto(saida: Any) -> str:
+    """Reduz a resposta do agente a texto puro.
+
+    Modelos mais novos devolvem a resposta em blocos estruturados, cada um
+    com o texto e metadados internos do modelo. As interfaces so querem o
+    texto, entao a normalizacao acontece aqui e nao em cada uma delas.
+    """
+    if isinstance(saida, str):
+        return saida.strip()
+
+    if isinstance(saida, list):
+        partes = []
+        for bloco in saida:
+            if isinstance(bloco, str):
+                partes.append(bloco)
+            elif isinstance(bloco, dict) and bloco.get("type") == "text":
+                partes.append(bloco.get("text", ""))
+        return "\n".join(parte for parte in partes if parte).strip()
+
+    if isinstance(saida, dict):
+        return extrair_texto(saida.get("text") or saida.get("content") or "")
+
+    return str(saida).strip()
+
+
+def responder(executor: Any, pergunta: str, historico: list | None = None) -> str:
+    """Faz uma pergunta ao agente e devolve a resposta ja em texto puro."""
+    entrada: dict[str, Any] = {"pergunta": pergunta}
+    if historico:
+        entrada["historico"] = historico
+    return extrair_texto(executor.invoke(entrada)["output"])
 
 
 def _formatar_simulacao(resultado) -> str:
@@ -348,7 +387,10 @@ def montar_agente(
     precos: RepositorioPrecosCombustivel | None = None,
 ) -> Any:
     """Devolve um executor pronto para receber perguntas."""
-    from langchain.agents import AgentExecutor, create_tool_calling_agent
+    # A partir do LangChain 1.x a API de agentes migrou para create_agent e
+    # a anterior passou a viver em langchain_classic. Mantemos a anterior
+    # por ora: ela e estavel e o projeto ja esta construido em cima dela.
+    from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
     ferramentas = montar_ferramentas(catalogo, base_vetorial, trechos_recuperados, precos)
