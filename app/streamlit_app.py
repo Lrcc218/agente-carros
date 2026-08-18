@@ -14,16 +14,23 @@ import streamlit as st
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import tutorial  # noqa: E402
+from estilo import CSS, cabecalho, rodape  # noqa: E402
 
 from agente_carros.agente import responder as responder_agente  # noqa: E402
 from agente_carros.config import carregar_configuracao  # noqa: E402
 from agente_carros.fabrica import criar_agente  # noqa: E402
 
 TITULO = "Consultor de carros"
+SELO = "Agente de IA · dados oficiais"
 SUBTITULO = (
-    "Ficha tecnica, preco da Tabela FIPE e simulacao de custo de viagem "
-    "para 28 modelos, do popular ao esportivo."
+    "Ficha tecnica, preco da Tabela FIPE, consumo do Inmetro e simulacao do custo "
+    "real de uma viagem, com o preco de combustivel praticado no seu estado. "
+    "28 modelos, do hatch de entrada ao superesportivo."
 )
+FONTES = ["Tabela FIPE", "PBE Veicular / Inmetro", "Levantamento de precos da ANP"]
 
 EXEMPLOS = [
     "Quais carros custam ate 70 mil?",
@@ -62,12 +69,24 @@ def mostrar_barra_lateral(montagem) -> None:
                 st.write(f"- {veiculo.marca} {veiculo.modelo} {veiculo.versao}")
 
         st.divider()
+        if st.button("📖  Tutorial", use_container_width=True, key="abrir_tutorial"):
+            tutorial.abrir()
+            st.rerun()
+        if st.button(
+            "Mostrar tutorial a cada visita",
+            use_container_width=True,
+            key="esquecer_tutorial",
+            help="Apaga a preferencia guardada neste navegador",
+        ):
+            tutorial.esquecer()
+            st.toast("O tutorial voltara a abrir sozinho neste navegador.")
+        if st.button("Limpar conversa", use_container_width=True, key="limpar_conversa"):
+            st.session_state.mensagens = []
+            st.rerun()
+
         st.caption(
             "A ficha tecnica esta em conferencia. Preco e consumo vem de fonte oficial."
         )
-        if st.button("Limpar conversa", use_container_width=True):
-            st.session_state.mensagens = []
-            st.rerun()
 
 
 def mensagem_de_erro(erro: Exception) -> str:
@@ -98,8 +117,8 @@ def responder(montagem, pergunta: str) -> str:
 
 def main() -> None:
     st.set_page_config(page_title=TITULO, page_icon="🚗", layout="centered")
-    st.title(f"🚗 {TITULO}")
-    st.caption(SUBTITULO)
+    st.markdown(CSS, unsafe_allow_html=True)
+    st.markdown(cabecalho(TITULO, SUBTITULO, SELO), unsafe_allow_html=True)
 
     try:
         carregar_configuracao().validar()
@@ -113,13 +132,23 @@ def main() -> None:
         st.error(f"Nao foi possivel iniciar o agente: {erro}")
         st.stop()
 
-    mostrar_barra_lateral(montagem)
-
     if "mensagens" not in st.session_state:
         st.session_state.mensagens = []
 
+    # O tutorial ocupa a tela inteira: no primeiro acesso ele vem antes do
+    # agente, e depois so reaparece se a pessoa pedir na barra lateral.
+    tutorial.iniciar_estado()
+    if tutorial.esta_aberto():
+        tutorial.renderizar()
+        return
+
+    # Grava no navegador que o tutorial ja foi visto, logo apos ele fechar.
+    tutorial.registrar_preferencia_pendente()
+
+    mostrar_barra_lateral(montagem)
+
     if not st.session_state.mensagens:
-        st.write("Alguns exemplos do que da para perguntar:")
+        st.markdown("**Comece por aqui**")
         colunas = st.columns(2)
         for indice, exemplo in enumerate(EXEMPLOS):
             if colunas[indice % 2].button(exemplo, use_container_width=True):
@@ -129,6 +158,9 @@ def main() -> None:
     for mensagem in st.session_state.mensagens:
         with st.chat_message(mensagem["papel"]):
             st.markdown(mensagem["conteudo"])
+
+    if not st.session_state.mensagens:
+        st.markdown(rodape(FONTES), unsafe_allow_html=True)
 
     pergunta = st.chat_input("Pergunte sobre um carro, um preco ou uma viagem")
     if not pergunta:
