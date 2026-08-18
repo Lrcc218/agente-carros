@@ -59,6 +59,29 @@ O script varre a pasta de documentos recursivamente, entao os manuais entram
 sem nenhuma outra alteracao. Cada trecho indexado guarda se veio de documento
 oficial ou de manual.
 
+## Pastas iniciadas por sublinhado ficam fora do indice
+
+O indexador varre `dados/brutos/documentos/` recursivamente, mas **ignora
+qualquer pasta cujo nome comece com sublinhado**. Isso permite guardar
+documentos junto do projeto sem que entrem no indice:
+
+```
+dados/brutos/documentos/manuais/
+  toyota_corolla_manual_proprietario.pdf   <- indexado
+  _pendentes/                              <- guardado, fora do indice
+  _fora_do_catalogo/                       <- guardado, fora do indice
+```
+
+- `_pendentes/` — material que sera indexado mais adiante. Indexar tudo de
+  uma vez esbarra na cota gratuita de embeddings, entao o acervo entra aos
+  poucos.
+- `_fora_do_catalogo/` — documentos de modelos que nao estao no catalogo do
+  agente. Indexa-los faria o agente responder sobre carros que ele nao tem,
+  que e justamente o erro que o projeto evita.
+
+Para incluir um documento no indice, mova-o para fora dessas pastas e rode
+`python scripts/indexar_documentos.py` novamente.
+
 ## Duas observacoes
 
 **Cobertura desigual.** Se voce indexar o manual de dois carros, o agente vai

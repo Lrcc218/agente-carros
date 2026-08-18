@@ -25,7 +25,7 @@ VARIAVEIS_DE_CHAVE = {
 }
 
 MODELOS_PADRAO = {
-    "gemini": ("gemini-3.5-flash-lite", "models/gemini-embedding-001"),
+    "gemini": ("gemini-3.5-flash-lite", "models/gemini-embedding-2"),
     "nvidia": ("meta/llama-3.3-70b-instruct", "nvidia/nv-embedqa-e5-v5"),
 }
 

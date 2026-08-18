@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import shutil
 import sys
@@ -27,17 +28,27 @@ sys.path.insert(0, str(RAIZ / "src"))
 
 from agente_carros.config import carregar_configuracao  # noqa: E402
 
-TAMANHO_TRECHO = 1200
-SOBREPOSICAO = 150
+# Trechos maiores reduzem o numero de requisicoes de embedding, o que
+# importa porque a camada gratuita limita o total por dia, nao por minuto.
+# Um manual de 484 paginas gera 1145 trechos a 1200 caracteres e apenas
+# cerca de 570 a 2400, o que cabe na cota. A recuperacao fica um pouco
+# menos precisa, mas continua boa: o trecho recuperado traz mais contexto.
+TAMANHO_TRECHO = 2400
+SOBREPOSICAO = 200
 
 # A camada gratuita das APIs de embedding limita requisicoes por minuto.
 # Enviar centenas de trechos de uma vez estoura o limite e devolve 429, entao
 # a indexacao vai em lotes pequenos, com pausa entre eles e reenvio com espera
 # crescente quando o limite e atingido.
-TAMANHO_LOTE = 16
-PAUSA_ENTRE_LOTES = 1.5
-TENTATIVAS = 5
+# O limite da camada gratuita e por minuto, e cada texto do lote conta como
+# uma requisicao. Um lote de 16 disparado de uma vez estoura a taxa mesmo
+# com cota diaria sobrando — chamadas individuais passam, o lote nao. Lotes
+# pequenos com pausa mantem o ritmo abaixo do teto.
+TAMANHO_LOTE = 4
+PAUSA_ENTRE_LOTES = 4.0
+TENTATIVAS = 8
 ESPERA_INICIAL = 20
+ESPERA_MAXIMA = 90
 
 
 def carregar_titulos(pasta: Path) -> dict[str, str]:
@@ -88,17 +99,53 @@ def nome_legivel(arquivo: Path) -> str:
     return arquivo.stem.replace("_", " ").replace("-", " ").strip()
 
 
-def indexar_em_lotes(trechos: list, embeddings, FAISS) -> object:
-    """Gera os embeddings aos poucos, respeitando o limite de requisicoes.
+# Falhas que valem reenviar: limite de requisicoes e indisponibilidade
+# temporaria do servico. Erro de credencial ou de modelo inexistente nao
+# melhora esperando, entao esses sobem na hora.
+TRANSITORIOS = ("429", "500", "502", "503", "504")
+TERMOS_TRANSITORIOS = ("quota", "rate limit", "unavailable", "internal", "timeout", "deadline")
 
-    Devolve o indice FAISS montado. O primeiro lote cria o indice e os
-    seguintes sao anexados, o que tambem mantem o uso de memoria estavel em
-    documentos grandes.
+
+def _vale_reenviar(erro: Exception) -> bool:
+    texto = str(erro).lower()
+    return any(c in texto for c in TRANSITORIOS) or any(t in texto for t in TERMOS_TRANSITORIOS)
+
+
+def _assinatura(trechos: list, modelo: str) -> str:
+    """Identifica esta indexacao, para so retomar o progresso equivalente."""
+    marca = f"{modelo}|{TAMANHO_TRECHO}|{SOBREPOSICAO}|{len(trechos)}"
+    return hashlib.sha256(marca.encode()).hexdigest()[:16]
+
+
+def indexar_em_lotes(trechos: list, embeddings, FAISS, parcial: Path, modelo: str) -> object:
+    """Gera os embeddings aos poucos, salvando o progresso a cada lote.
+
+    A cota gratuita de embeddings e diaria, e o servico as vezes responde
+    indisponivel. Sem progresso salvo, uma falha perto do fim descarta
+    centenas de requisicoes ja gastas, que so voltam no dia seguinte. Por
+    isso o indice parcial vai para o disco a cada lote e uma nova execucao
+    retoma de onde parou.
     """
-    indice = None
     total = len(trechos)
+    assinatura = _assinatura(trechos, modelo)
+    controle = parcial / "progresso.json"
 
-    for inicio in range(0, total, TAMANHO_LOTE):
+    indice = None
+    processados = 0
+
+    if controle.exists():
+        estado = json.loads(controle.read_text(encoding="utf-8"))
+        if estado.get("assinatura") == assinatura:
+            indice = FAISS.load_local(
+                str(parcial), embeddings, allow_dangerous_deserialization=True
+            )
+            processados = estado["processados"]
+            print(f"  retomando de {processados}/{total} trechos ja processados")
+        else:
+            print("  progresso anterior e de outra configuracao; recomecando")
+            shutil.rmtree(parcial)
+
+    for inicio in range(processados, total, TAMANHO_LOTE):
         lote = trechos[inicio : inicio + TAMANHO_LOTE]
         espera = ESPERA_INICIAL
 
@@ -109,18 +156,23 @@ def indexar_em_lotes(trechos: list, embeddings, FAISS) -> object:
                 else:
                     indice.add_documents(lote)
                 break
-            except Exception as erro:  # noqa: BLE001 - o provedor sinaliza limite de varias formas
-                limite_atingido = "429" in str(erro) or "quota" in str(erro).lower()
-                if not limite_atingido or tentativa == TENTATIVAS:
+            except Exception as erro:  # noqa: BLE001 - o provedor sinaliza falhas de varias formas
+                if not _vale_reenviar(erro) or tentativa == TENTATIVAS:
                     raise
                 print(
-                    f"    limite de requisicoes atingido; "
-                    f"aguardando {espera}s (tentativa {tentativa}/{TENTATIVAS})"
+                    f"    falha temporaria; aguardando {espera}s "
+                    f"(tentativa {tentativa}/{TENTATIVAS})"
                 )
                 time.sleep(espera)
-                espera *= 2
+                espera = min(espera * 2, ESPERA_MAXIMA)
 
         processados = min(inicio + TAMANHO_LOTE, total)
+        parcial.mkdir(parents=True, exist_ok=True)
+        indice.save_local(str(parcial))
+        controle.write_text(
+            json.dumps({"assinatura": assinatura, "processados": processados}),
+            encoding="utf-8",
+        )
         print(f"  embeddings: {processados}/{total} trechos", flush=True)
         if processados < total:
             time.sleep(PAUSA_ENTRE_LOTES)
@@ -138,8 +190,15 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
     from agente_carros.fabrica import criar_provedor
 
     config = carregar_configuracao()
-    # rglob para alcancar tambem a subpasta de manuais adicionados a mao.
-    pdfs = sorted(pasta_documentos.rglob("*.pdf"))
+    # rglob para alcancar as subpastas de manuais adicionados a mao. Pastas
+    # iniciadas por sublinhado ficam de fora de proposito: guardam o que foi
+    # baixado mas nao deve entrar no indice, como documentos de modelos que
+    # nao estao no catalogo ou material ainda pendente de indexacao.
+    pdfs = sorted(
+        f
+        for f in pasta_documentos.rglob("*.pdf")
+        if not any(parte.startswith("_") for parte in f.relative_to(pasta_documentos).parts)
+    )
     if not pdfs:
         raise SystemExit(
             f"Nenhum PDF em {pasta_documentos}. "
@@ -175,7 +234,10 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
     # Pela fabrica, e nao por um adaptador especifico: o script deve
     # indexar com o mesmo provedor que a aplicacao usa para consultar.
     provedor = criar_provedor(config)
-    indice = indexar_em_lotes(trechos, provedor.modelo_embedding(), FAISS)
+    parcial = destino.parent / f"{destino.name}_parcial"
+    indice = indexar_em_lotes(
+        trechos, provedor.modelo_embedding(), FAISS, parcial, config.modelo_embedding
+    )
 
     if destino.exists():
         shutil.rmtree(destino)
@@ -197,6 +259,9 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
         ),
         encoding="utf-8",
     )
+    # O parcial so e descartado depois que o definitivo esta no lugar.
+    if parcial.exists():
+        shutil.rmtree(parcial)
     print(f"Indice gravado em {destino.relative_to(RAIZ)}")
 
 

@@ -20,3 +20,6 @@ dados/brutos/*
 
 # Sistema
 .DS_Store
+
+# Progresso de indexacao, temporario
+dados/processados/indice_faiss_parcial/

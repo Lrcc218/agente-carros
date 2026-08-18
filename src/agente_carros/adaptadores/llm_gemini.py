@@ -15,7 +15,7 @@ from agente_carros.config import Configuracao
 # Os modelos "lite" tem cota gratuita diaria bem maior que os completos,
 # o que importa num agente: cada pergunta consome duas ou tres chamadas.
 MODELO_CHAT_PADRAO = "gemini-3.5-flash-lite"
-MODELO_EMBEDDING_PADRAO = "models/gemini-embedding-001"
+MODELO_EMBEDDING_PADRAO = "models/gemini-embedding-2"
 
 
 class ProvedorGemini:
