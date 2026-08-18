@@ -1,5 +1,5 @@
 # Interface
-streamlit==1.38.0
+streamlit==1.61.1
 
 # Orquestracao do agente
 langchain==1.3.15
