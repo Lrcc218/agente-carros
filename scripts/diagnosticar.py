@@ -92,18 +92,17 @@ def verificar_configuracao(relatorio: Relatorio) -> bool:
     relatorio.ok(f"modelo de chat: {config.modelo_chat}")
     relatorio.ok(f"modelo de embedding: {config.modelo_embedding}")
 
-    if not (RAIZ / ".env").exists():
-        relatorio.falha(
-            "arquivo .env ausente",
-            "python scripts/configurar_chave.py /caminho/da/chave",
-        )
-        return False
-
+    # O .env e a forma local de guardar a chave. Em servidor de deploy ela
+    # chega como variavel de ambiente, e o arquivo nao existe — entao o que
+    # se verifica e a chave em si, nao o arquivo.
     try:
         config.validar()
     except ValueError as erro:
         relatorio.falha(str(erro), "python scripts/configurar_chave.py /caminho/da/chave")
         return False
+
+    if not (RAIZ / ".env").exists():
+        relatorio.aviso("sem arquivo .env; a chave veio do ambiente, como no deploy")
 
     chave = config.chave_api
     relatorio.ok(f"chave presente: {chave[:6]}...{chave[-4:]} ({len(chave)} caracteres)")
@@ -122,8 +121,13 @@ def verificar_provedor(relatorio: Relatorio) -> bool:
         return False
 
     try:
+        # A resposta pode vir como texto ou como blocos estruturados, conforme
+        # o modelo. A normalizacao usada pelo agente serve aqui tambem, para
+        # que o diagnostico nao acuse falha de credencial por erro de formato.
+        from agente_carros.agente import extrair_texto
+
         resposta = provedor.modelo_chat().invoke("Responda apenas: ok")
-        texto = getattr(resposta, "content", str(resposta)).strip()
+        texto = extrair_texto(getattr(resposta, "content", resposta))
         relatorio.ok(f"chat respondeu: {texto[:60]!r}")
     except Exception as erro:  # noqa: BLE001
         relatorio.falha(
@@ -148,18 +152,29 @@ def verificar_indice(relatorio: Relatorio) -> None:
     print("\nIndice vetorial")
     caminhos = carregar_configuracao().caminhos
     documentos = list(caminhos.documentos.rglob("*.pdf")) if caminhos.documentos.exists() else []
-    if documentos:
-        relatorio.ok(f"{len(documentos)} PDFs disponiveis para indexacao")
-    else:
-        relatorio.falha("nenhum PDF baixado", "python scripts/baixar_documentos.py")
+    tem_indice = caminhos.indice_vetorial.exists()
 
-    if caminhos.indice_vetorial.exists():
+    if tem_indice:
         relatorio.ok(f"indice presente em {caminhos.indice_vetorial.name}")
     else:
         relatorio.falha(
             "indice ausente; o agente responde sem os documentos do Inmetro",
             "python scripts/indexar_documentos.py",
         )
+
+    # Os PDFs so fazem falta para reconstruir o indice. Com o indice pronto,
+    # a aplicacao nao os abre — e no servidor de deploy eles nem existem,
+    # porque ficam fora do controle de versao.
+    if documentos:
+        relatorio.ok(f"{len(documentos)} PDFs disponiveis para reindexar")
+    elif tem_indice:
+        relatorio.aviso(
+            "nenhum PDF em disco, o que e o esperado em servidor de deploy; "
+            "o indice ja contem o texto. Para reindexar, rode "
+            "python scripts/baixar_documentos.py"
+        )
+    else:
+        relatorio.falha("nenhum PDF baixado", "python scripts/baixar_documentos.py")
 
 
 def main() -> None:
