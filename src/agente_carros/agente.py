@@ -7,7 +7,7 @@ argumentos para que o modelo saiba quando e como chama-las.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -24,7 +24,6 @@ from agente_carros.ferramentas.simular_viagem import (
     PRECO_PADRAO_DIESEL,
     PRECO_PADRAO_ETANOL,
     PRECO_PADRAO_GASOLINA,
-    DadosInsuficientes,
     simular_viagem,
 )
 
@@ -100,21 +99,29 @@ class ListagemVeiculos(BaseModel):
     combustivel: str | None = Field(
         default=None, description="Filtra por flex, gasolina, diesel ou eletrico"
     )
-    ordenar_por: str = Field(
+    ordenar_por: Literal["preco", "consumo_cidade", "consumo_estrada", "potencia"] = Field(
         default="preco",
-        description="Ordena por preco, consumo_cidade, consumo_estrada ou potencia",
+        description="Criterio de ordenacao",
     )
 
 
 class ComparacaoVeiculos(BaseModel):
-    termos: list[str] = Field(description="Nomes dos carros a comparar, dois ou mais")
+    termos: list[str] = Field(
+        description="Nomes dos carros a comparar, de dois a cinco",
+        min_length=2,
+        max_length=5,
+    )
 
 
 class SimulacaoViagem(BaseModel):
     veiculo: str = Field(description="Nome do carro do catalogo")
-    distancia_km: float = Field(description="Distancia da viagem em quilometros, so a ida")
+    distancia_km: float = Field(
+        description="Distância da viagem em quilômetros, apenas a ida",
+        gt=0,
+        le=100_000,
+    )
     proporcao_cidade: float = Field(
-        default=0.3, description="Fracao do percurso em cidade, de 0 a 1"
+        default=0.3, description="Fração do percurso em cidade, de 0 a 1", ge=0, le=1
     )
     ida_e_volta: bool = Field(default=False, description="Se a viagem inclui o retorno")
     estado: str = Field(
@@ -126,15 +133,30 @@ class SimulacaoViagem(BaseModel):
     )
     preco_gasolina: float | None = Field(
         default=None,
-        description="Preco do litro da gasolina. So informe se o usuario disser o preco dele.",
+        gt=0,
+        le=100,
+        description=(
+            "Preço do litro da gasolina. "
+            "Só informe se o usuário disser o preço."
+        ),
     )
     preco_etanol: float | None = Field(
         default=None,
-        description="Preco do litro do etanol. So informe se o usuario disser o preco dele.",
+        gt=0,
+        le=100,
+        description=(
+            "Preço do litro do etanol. "
+            "Só informe se o usuário disser o preço."
+        ),
     )
     preco_diesel: float | None = Field(
         default=None,
-        description="Preco do litro do diesel. So informe se o usuario disser o preco dele.",
+        gt=0,
+        le=100,
+        description=(
+            "Preço do litro do diesel. "
+            "Só informe se o usuário disser o preço."
+        ),
     )
 
 
@@ -163,8 +185,12 @@ def extrair_texto(saida: Any) -> str:
     com o texto e metadados internos do modelo. As interfaces so querem o
     texto, entao a normalizacao acontece aqui e nao em cada uma delas.
     """
+    if saida is None:
+        return ""
     if isinstance(saida, str):
         return saida.strip()
+    if hasattr(saida, "content"):
+        return extrair_texto(saida.content)
 
     if isinstance(saida, list):
         partes = []
@@ -222,48 +248,62 @@ def _resolver_precos(
     estado: str,
     informados: dict[str, float | None],
 ) -> tuple[dict[str, float], str]:
-    """Decide o preco de cada combustivel e descreve a procedencia.
+    """Decide o preco de cada combustivel e descreve a procedencia de cada um.
 
     Preco dito pelo usuario tem prioridade. Sem isso, usa o levantamento da
-    ANP no estado pedido. Sem o dataset, cai para os valores de referencia.
+    ANP no estado pedido, que pode cair para a mediana nacional se aquele
+    estado nao tiver apuracao daquele produto. Sem o dataset, usa valores de
+    referencia.
+
+    A procedencia e montada por combustivel, e nao uma so para todos: numa
+    mesma consulta a gasolina pode vir do estado e o diesel da mediana
+    nacional, e declarar apenas uma origem seria falso.
     """
-    escolhidos = {
-        "preco_gasolina": informados.get("preco_gasolina"),
-        "preco_etanol": informados.get("preco_etanol"),
-        "preco_diesel": informados.get("preco_diesel"),
-    }
     padroes = {
         "preco_gasolina": ("gasolina", PRECO_PADRAO_GASOLINA),
         "preco_etanol": ("etanol", PRECO_PADRAO_ETANOL),
         "preco_diesel": ("diesel", PRECO_PADRAO_DIESEL),
     }
+    rotulos = {"preco_gasolina": "gasolina", "preco_etanol": "etanol", "preco_diesel": "diesel"}
 
     alvo = (estado or "BR").upper()
-    usou_anp = False
+    escolhidos: dict[str, float] = {}
+    origens: dict[str, str] = {}
     periodo = ""
-    uf_efetiva = alvo
 
     for chave, (produto, padrao) in padroes.items():
-        if escolhidos[chave] is not None:
+        informado = informados.get(chave)
+        if informado is not None:
+            escolhidos[chave] = float(informado)
+            origens[chave] = "informado por voce"
             continue
+
         apurado = precos.preco(produto, alvo) if precos is not None else None
         if apurado is not None:
             escolhidos[chave] = apurado.preco_mediano
-            usou_anp = True
             periodo = apurado.descricao_periodo
-            uf_efetiva = apurado.uf
+            origens[chave] = (
+                "mediana nacional" if apurado.uf == "BR" else f"mediana de {apurado.uf}"
+            )
         else:
             escolhidos[chave] = padrao
+            origens[chave] = "valor de referencia, sem apuracao oficial"
 
-    if any(valor is not None for valor in informados.values()):
-        fonte = "valores informados por voce"
-    elif usou_anp:
-        onde = "media nacional" if uf_efetiva == "BR" else f"mediana de {uf_efetiva}"
-        fonte = f"{onde}, {periodo}"
-    else:
-        fonte = "valores de referencia, sem apuracao oficial disponivel"
+    # Agrupa combustiveis que compartilham a mesma origem, para nao repetir.
+    por_origem: dict[str, list[str]] = {}
+    for chave, origem in origens.items():
+        por_origem.setdefault(origem, []).append(rotulos[chave])
 
-    return {chave: float(valor) for chave, valor in escolhidos.items()}, fonte
+    partes = []
+    for origem, combustiveis in por_origem.items():
+        if len(por_origem) == 1:
+            partes.append(origem)
+        else:
+            partes.append(f"{' e '.join(combustiveis)}: {origem}")
+    fonte = "; ".join(partes)
+    if periodo:
+        fonte = f"{fonte} ({periodo})"
+    return escolhidos, fonte
 
 
 def montar_ferramentas(
@@ -290,7 +330,17 @@ def montar_ferramentas(
     def simular(veiculo: str, estado: str = "BR", **argumentos) -> str:
         encontrados = catalogo.buscar_por_nome(veiculo)
         if not encontrados:
-            return f"'{veiculo}' nao esta no catalogo, entao nao da para simular a viagem."
+            return (
+                f"'{veiculo}' não está no catálogo, então não dá para simular a viagem."
+            )
+        if len(encontrados) > 1:
+            # Escolher o primeiro em silencio faria o agente simular um carro
+            # e o usuario acreditar que era outro.
+            nomes = ", ".join(v.nome_completo for v in encontrados[:5])
+            return (
+                f"'{veiculo}' corresponde a mais de um veículo do catálogo: {nomes}. "
+                "Pergunte qual deles antes de simular."
+            )
 
         informados = {
             chave: argumentos.pop(chave, None)
@@ -301,8 +351,8 @@ def montar_ferramentas(
             resultado = simular_viagem(
                 encontrados[0], **argumentos, **valores, fonte_precos=fonte
             )
-        except (DadosInsuficientes, ValueError) as erro:
-            return f"Nao foi possivel simular: {erro}"
+        except Exception as erro:  # noqa: BLE001 - falha aqui nao pode derrubar o agente
+            return f"Não foi possível simular: {erro}"
         return _formatar_simulacao(resultado)
 
     ferramentas = [

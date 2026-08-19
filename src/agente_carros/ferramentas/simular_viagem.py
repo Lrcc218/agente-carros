@@ -7,6 +7,8 @@ porque modelos de linguagem erram aritmetica com frequencia e confianca.
 
 from __future__ import annotations
 
+import math
+
 from agente_carros.dominio.modelos import CustoPorCombustivel, ResultadoViagem, Veiculo
 from agente_carros.ferramentas.formato import formatar_reais
 
@@ -15,6 +17,12 @@ from agente_carros.ferramentas.formato import formatar_reais
 PRECO_PADRAO_GASOLINA = 6.59
 PRECO_PADRAO_ETANOL = 4.28
 PRECO_PADRAO_DIESEL = 6.69
+
+# Teto de sanidade. A maior distancia rodoviaria dentro do pais nao chega a
+# 6.000 km; o limite existe para barrar valor absurdo vindo do modelo, que
+# produziria um custo de bilhoes com aparencia de calculo legitimo.
+DISTANCIA_MAXIMA_KM = 100_000
+PRECO_MAXIMO_LITRO = 100.0
 
 
 class DadosInsuficientes(ValueError):
@@ -33,7 +41,14 @@ def _litros_necessarios(
     consumos sobre a distancia total: a media aritmetica de km/l subestima
     o gasto, porque consumo e uma razao invertida.
     """
-    return distancia_cidade / consumo_cidade + distancia_estrada / consumo_estrada
+    # So divide onde ha percurso: um trecho de 0 km nao exige consumo daquele
+    # tipo, e dividir mesmo assim estoura quando o dado do trecho vazio falta.
+    litros = 0.0
+    if distancia_cidade > 0:
+        litros += distancia_cidade / consumo_cidade
+    if distancia_estrada > 0:
+        litros += distancia_estrada / consumo_estrada
+    return litros
 
 
 def _montar_custo(
@@ -75,21 +90,41 @@ def simular_viagem(
     Levanta `DadosInsuficientes` quando o veiculo nao tem consumo publicado
     no PBE Veicular — e preferivel recusar a estimar um numero inventado.
     """
-    if distancia_km <= 0:
-        raise ValueError("A distância precisa ser maior que zero.")
-    if not 0.0 <= proporcao_cidade <= 1.0:
+    if not math.isfinite(distancia_km) or distancia_km <= 0:
+        raise ValueError("A distância precisa ser um número maior que zero.")
+    if distancia_km > DISTANCIA_MAXIMA_KM:
+        raise ValueError(
+            f"A distância informada passa de {DISTANCIA_MAXIMA_KM:,} km, "
+            "o que não corresponde a uma viagem real.".replace(",", ".")
+        )
+    if not math.isfinite(proporcao_cidade) or not 0.0 <= proporcao_cidade <= 1.0:
         raise ValueError("A parcela do percurso em cidade precisa estar entre 0% e 100%.")
+
+    for nome, preco in (
+        ("gasolina", preco_gasolina),
+        ("etanol", preco_etanol),
+        ("diesel", preco_diesel),
+    ):
+        if not math.isfinite(preco) or not 0 < preco <= PRECO_MAXIMO_LITRO:
+            raise ValueError(
+                f"O preço informado para {nome} não é um valor plausível por litro."
+            )
 
     if veiculo.e_eletrico:
         raise DadosInsuficientes(
-            f"{veiculo.nome_completo} e eletrico. O catalogo registra a eficiencia em "
-            "km por litro equivalente e a autonomia da bateria, mas nao o consumo em "
-            "kWh, entao o custo em reais da viagem nao pode ser calculado."
+            f"{veiculo.nome_completo} é elétrico. O catálogo registra a eficiência em "
+            "km por litro equivalente e a autonomia da bateria, mas não o consumo em "
+            "kWh, então o custo em reais da viagem não pode ser calculado."
         )
     if not veiculo.tem_dados_de_consumo:
         raise DadosInsuficientes(
-            f"{veiculo.nome_completo} nao consta nas tabelas do PBE Veicular usadas "
-            "neste projeto, entao nao ha dados de consumo para simular a viagem."
+            f"{veiculo.nome_completo} não consta nas tabelas do PBE Veicular usadas "
+            "neste projeto, então não há dados de consumo para simular a viagem."
+        )
+    if veiculo.consumo_cidade <= 0 or veiculo.consumo_estrada <= 0:
+        raise DadosInsuficientes(
+            f"O consumo registrado para {veiculo.nome_completo} não é utilizável: "
+            "um consumo de zero ou negativo produziria um custo sem sentido."
         )
 
     distancia_total = distancia_km * (2 if ida_e_volta else 1)
@@ -99,9 +134,12 @@ def simular_viagem(
     custos: list[CustoPorCombustivel] = []
     observacoes: list[str] = []
 
+    # Comparacao por conteudo, e nao por igualdade exata: a ficha e curada a
+    # mao, e um "Diesel S10" seria precificado como gasolina em silencio.
     combustivel = veiculo.combustivel.lower()
-    preco_principal = preco_diesel if combustivel == "diesel" else preco_gasolina
-    nome_principal = "diesel" if combustivel == "diesel" else "gasolina"
+    e_diesel = "diesel" in combustivel
+    preco_principal = preco_diesel if e_diesel else preco_gasolina
+    nome_principal = "diesel" if e_diesel else "gasolina"
 
     litros = _litros_necessarios(
         distancia_cidade,

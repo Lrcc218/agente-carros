@@ -15,6 +15,8 @@ from agente_carros.dominio.portas import RepositorioCatalogo
 from agente_carros.ferramentas.formato import formatar_reais
 
 LIMITE_RESULTADOS = 10
+LIMITE_COMPARACAO = 5
+LIMITE_TERMO = 80
 
 
 _reais = formatar_reais
@@ -146,15 +148,25 @@ def listar_veiculos(
 def comparar_veiculos(catalogo: RepositorioCatalogo, termos: list[str]) -> str:
     """Coloca lado a lado a ficha dos veiculos indicados."""
     if len(termos) < 2:
-        return "Informe pelo menos dois veiculos para comparar."
+        return "Informe pelo menos dois veículos para comparar."
 
+    # Teto no numero de termos e no tamanho de cada um: o resultado volta
+    # para o contexto do modelo, e uma lista longa vira centenas de milhares
+    # de caracteres reenviados a cada passo.
     blocos: list[str] = []
-    for termo in termos:
-        encontrados = catalogo.buscar_por_nome(termo)
+    for termo in termos[:LIMITE_COMPARACAO]:
+        recortado = termo[:LIMITE_TERMO]
+        encontrados = catalogo.buscar_por_nome(recortado)
         if not encontrados:
-            blocos.append(f"'{termo}': nao encontrado no catalogo.")
+            blocos.append(f"'{recortado}': não encontrado no catálogo.")
         else:
             blocos.append(formatar_ficha(encontrados[0]))
+
+    if len(termos) > LIMITE_COMPARACAO:
+        blocos.append(
+            f"Foram informados {len(termos)} veículos; comparei os "
+            f"{LIMITE_COMPARACAO} primeiros."
+        )
     return "\n\n".join(blocos)
 
 

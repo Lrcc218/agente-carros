@@ -70,7 +70,16 @@ class Veiculo:
 
     @property
     def e_flex(self) -> bool:
-        return self.consumo_cidade_etanol is not None and self.consumo_cidade is not None
+        """Exige as duas medidas a etanol.
+
+        A extracao do PDF pode gravar uma coluna e nao a outra; sem esta
+        checagem a simulacao dividiria por None ao calcular o trecho faltante.
+        """
+        return (
+            self.consumo_cidade_etanol is not None
+            and self.consumo_estrada_etanol is not None
+            and self.tem_dados_de_consumo
+        )
 
     @property
     def e_eletrico(self) -> bool:

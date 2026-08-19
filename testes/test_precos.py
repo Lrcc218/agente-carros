@@ -86,7 +86,34 @@ def test_preco_informado_pelo_usuario_tem_prioridade(precos):
     valores, fonte = _resolver_precos(precos, "SP", informados)
 
     assert valores["preco_gasolina"] == 7.5
-    assert "informados por voce" in fonte
+    assert valores["preco_etanol"] == precos.preco("etanol", "SP").preco_mediano
+    # A procedencia precisa separar o que veio de quem: antes a frase dizia
+    # que todos os precos eram do usuario, inclusive os que vieram da ANP.
+    assert "gasolina: informado por voce" in fonte
+    assert "mediana de SP" in fonte
+
+
+def test_procedencia_distingue_estado_de_media_nacional(precos):
+    """Uma UF sem apuracao alguma cai para a mediana nacional, e diz isso."""
+    vazios = {"preco_gasolina": None, "preco_etanol": None, "preco_diesel": None}
+
+    valores, fonte = _resolver_precos(precos, "XX", vazios)
+
+    assert valores["preco_gasolina"] == precos.preco("gasolina", "BR").preco_mediano
+    assert "mediana nacional" in fonte
+
+
+def test_diesel_prefere_apuracao_local_a_mediana_nacional(precos):
+    """No Amapa nao ha diesel comum apurado, mas ha S10.
+
+    O ramo do alternativo era codigo morto: a mediana nacional vinha antes e
+    sempre casava, entao o preco local do outro tipo de diesel era ignorado.
+    """
+    resultado = precos.preco("diesel", "AP")
+
+    assert resultado is not None
+    assert resultado.uf == "AP"
+    assert resultado.produto == "diesel_s10"
 
 
 def test_sem_dataset_usa_valores_de_referencia():

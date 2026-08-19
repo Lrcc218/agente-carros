@@ -125,7 +125,7 @@ def test_recusa_veiculo_sem_dados_de_consumo():
 def test_recusa_veiculo_eletrico():
     veiculo = montar_veiculo(combustivel="eletrico", consumo_cidade=None, consumo_estrada=None)
 
-    with pytest.raises(DadosInsuficientes, match="eletrico"):
+    with pytest.raises(DadosInsuficientes, match="[eé]l[eé]trico"):
         simular_viagem(veiculo, distancia_km=100)
 
 
@@ -152,3 +152,56 @@ def test_viagem_real_com_dados_do_catalogo(catalogo):
     assert 50 < gasolina.litros_necessarios < 90
     assert gasolina.custo_total > 0
     assert any("PBE Veicular" in obs for obs in resultado.observacoes)
+
+
+@pytest.mark.parametrize("distancia", [float("nan"), float("inf"), 1e12])
+def test_recusa_distancia_absurda(distancia):
+    """Sem isso a resposta saia com 'R$ nan' ou custos de bilhoes."""
+    with pytest.raises(ValueError):
+        simular_viagem(montar_veiculo(), distancia_km=distancia)
+
+
+@pytest.mark.parametrize("preco", [-50.0, 0.0, float("nan"), 1e6])
+def test_recusa_preco_de_combustivel_implausivel(preco):
+    with pytest.raises(ValueError, match="plausível"):
+        simular_viagem(montar_veiculo(), distancia_km=100, preco_gasolina=preco)
+
+
+def test_recusa_consumo_zero_ou_negativo():
+    veiculo = montar_veiculo(consumo_cidade=-10.0, consumo_estrada=-15.0)
+
+    with pytest.raises(DadosInsuficientes, match="não é utilizável"):
+        simular_viagem(veiculo, distancia_km=300)
+
+
+def test_trecho_vazio_nao_exige_o_consumo_daquele_tipo():
+    """0 km de cidade nao pode estourar quando falta o consumo urbano."""
+    veiculo = montar_veiculo(consumo_cidade=10.0, consumo_estrada=15.0)
+
+    resultado = simular_viagem(veiculo, distancia_km=300, proporcao_cidade=0.0)
+
+    assert custo_de(resultado, "gasolina").litros_necessarios == 20.0
+
+
+def test_diesel_reconhecido_por_conteudo():
+    """Uma ficha com 'Diesel S10' nao pode ser precificada como gasolina."""
+    veiculo = montar_veiculo(
+        combustivel="Diesel S10",
+        consumo_cidade=9.0,
+        consumo_estrada=11.0,
+        consumo_cidade_etanol=None,
+        consumo_estrada_etanol=None,
+    )
+
+    resultado = simular_viagem(veiculo, distancia_km=200, preco_diesel=6.9)
+
+    assert custo_de(resultado, "diesel").preco_por_litro == 6.9
+
+
+def test_flex_exige_as_duas_medidas_de_etanol():
+    """Meia coluna de etanol fazia a conta dividir por None."""
+    veiculo = montar_veiculo(consumo_estrada_etanol=None)
+
+    resultado = simular_viagem(veiculo, distancia_km=200, proporcao_cidade=0.5)
+
+    assert [c.combustivel for c in resultado.custos] == ["gasolina"]

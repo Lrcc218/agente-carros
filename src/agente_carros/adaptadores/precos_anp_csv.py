@@ -48,15 +48,23 @@ class PrecosANP:
         diesel comum, o S10 serve de referencia, e vice-versa.
         """
         alvo = (uf or NACIONAL).upper()
-        for chave in ((produto, alvo), (produto, NACIONAL)):
-            if chave in self._precos:
-                return self._precos[chave]
-
+        alternativo = None
         if produto.startswith("diesel"):
             alternativo = "diesel_s10" if produto == "diesel" else "diesel"
-            for chave in ((alternativo, alvo), (alternativo, NACIONAL)):
-                if chave in self._precos:
-                    return self._precos[chave]
+
+        # A apuracao local do outro tipo de diesel representa melhor o preco
+        # daquele estado do que a mediana nacional do tipo pedido. Antes o
+        # nacional vinha primeiro, e o ramo do alternativo era inalcancavel.
+        tentativas = [(produto, alvo)]
+        if alternativo:
+            tentativas.append((alternativo, alvo))
+        tentativas.append((produto, NACIONAL))
+        if alternativo:
+            tentativas.append((alternativo, NACIONAL))
+
+        for chave in tentativas:
+            if chave in self._precos:
+                return self._precos[chave]
         return None
 
     def por_estado(self, produto: str) -> list[PrecoCombustivel]:
