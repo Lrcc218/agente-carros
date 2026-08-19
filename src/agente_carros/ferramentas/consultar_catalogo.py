@@ -12,11 +12,20 @@ from __future__ import annotations
 
 from agente_carros.dominio.modelos import Veiculo
 from agente_carros.dominio.portas import RepositorioCatalogo
-from agente_carros.ferramentas.formato import formatar_reais
+from agente_carros.ferramentas.formato import formatar_numero, formatar_reais
 
 LIMITE_RESULTADOS = 10
 LIMITE_COMPARACAO = 5
 LIMITE_TERMO = 80
+
+# Rotulos legiveis para os criterios de ordenacao: sem isso a resposta ao
+# usuario sai com o identificador interno, tipo "ordenados por consumo_cidade".
+ROTULOS_ORDENACAO = {
+    "preco": "preço",
+    "consumo_cidade": "consumo na cidade",
+    "consumo_estrada": "consumo na estrada",
+    "potencia": "potência",
+}
 
 
 _reais = formatar_reais
@@ -25,14 +34,14 @@ _reais = formatar_reais
 def _consumo_resumido(veiculo: Veiculo) -> str:
     if veiculo.e_eletrico:
         if veiculo.consumo_cidade_kmle is None:
-            return "consumo nao publicado"
+            return "consumo não publicado"
         return (
-            f"{veiculo.consumo_cidade_kmle} km/l e na cidade e "
-            f"{veiculo.consumo_estrada_kmle} km/l e na estrada, "
+            f"{formatar_numero(veiculo.consumo_cidade_kmle)} km/l equivalente na cidade e "
+            f"{formatar_numero(veiculo.consumo_estrada_kmle)} km/l equivalente na estrada, "
             f"autonomia de {veiculo.autonomia_eletrica_km} km"
         )
     if not veiculo.tem_dados_de_consumo:
-        return "consumo nao publicado no PBE Veicular"
+        return "consumo não publicado no PBE Veicular"
 
     partes = [f"{veiculo.consumo_cidade} km/l cidade, {veiculo.consumo_estrada} km/l estrada"]
     if veiculo.e_flex:
@@ -57,24 +66,24 @@ def formatar_ficha(veiculo: Veiculo) -> str:
         f"{veiculo.nome_completo}",
         f"  Categoria: {veiculo.categoria}",
         f"  Motor: {veiculo.motor}",
-        f"  Potencia: {veiculo.potencia_cv} cv | Torque: {veiculo.torque_kgfm} kgfm",
-        f"  Cambio: {veiculo.cambio} | Tracao: {veiculo.tracao}",
+        f"  Potência: {veiculo.potencia_cv} cv | Torque: {veiculo.torque_kgfm} kgfm",
+        f"  Câmbio: {veiculo.cambio} | Tração: {veiculo.tracao}",
         f"  Portas: {veiculo.portas} | Lugares: {veiculo.lugares}",
         f"  Porta-malas: {veiculo.porta_malas_litros} litros",
-        f"  Combustivel: {veiculo.combustivel}",
+        f"  Combustível: {veiculo.combustivel}",
     ]
     if veiculo.tanque_litros:
         linhas.append(f"  Tanque: {veiculo.tanque_litros} litros")
     linhas.append(f"  Consumo: {_consumo_resumido(veiculo)}")
     if veiculo.classe_energetica:
-        linhas.append(f"  Classificacao de eficiencia (Inmetro): {veiculo.classe_energetica}")
-    linhas.append(f"  Preco FIPE: {_reais(veiculo.preco_fipe)}")
+        linhas.append(f"  Classificação de eficiência (Inmetro): {veiculo.classe_energetica}")
+    linhas.append(f"  Preço FIPE: {_reais(veiculo.preco_fipe)}")
     if veiculo.mes_referencia_fipe:
-        linhas.append(f"  Referencia FIPE: {veiculo.mes_referencia_fipe}")
+        linhas.append(f"  Referência FIPE: {veiculo.mes_referencia_fipe}")
     if veiculo.codigo_fipe:
-        linhas.append(f"  Codigo FIPE: {veiculo.codigo_fipe}")
+        linhas.append(f"  Código FIPE: {veiculo.codigo_fipe}")
     if veiculo.versao_pbev:
-        linhas.append(f"  Versao no PBE Veicular: {veiculo.versao_pbev}")
+        linhas.append(f"  Versão no PBE Veicular: {veiculo.versao_pbev}")
     return "\n".join(linhas)
 
 
@@ -84,14 +93,14 @@ def buscar_veiculo(catalogo: RepositorioCatalogo, termo: str) -> str:
     if not encontrados:
         disponiveis = sorted({v.marca for v in catalogo.listar()})
         return (
-            f"Nenhum veiculo do catalogo corresponde a '{termo}'. "
-            f"O catalogo cobre estas marcas: {', '.join(disponiveis)}."
+            f"Nenhum veículo do catálogo corresponde a '{termo}'. "
+            f"O catálogo cobre estas marcas: {', '.join(disponiveis)}."
         )
     mostrados = encontrados[:LIMITE_RESULTADOS]
     fichas = "\n\n".join(formatar_ficha(veiculo) for veiculo in mostrados)
     if len(encontrados) > len(mostrados):
         return (
-            f"{len(encontrados)} veiculos correspondem a '{termo}'. "
+            f"{len(encontrados)} veículos correspondem a '{termo}'. "
             f"Mostrando os {len(mostrados)} primeiros.\n\n{fichas}"
         )
     return fichas
@@ -115,7 +124,7 @@ def listar_veiculos(
         combustivel=combustivel,
     )
     if not encontrados:
-        return "Nenhum veiculo do catalogo atende a esses criterios."
+        return "Nenhum veículo do catálogo atende a esses critérios."
 
     chaves = {
         "preco": lambda v: v.preco_fipe if v.preco_fipe is not None else float("inf"),
@@ -123,7 +132,8 @@ def listar_veiculos(
         "consumo_estrada": lambda v: -(v.consumo_estrada or 0),
         "potencia": lambda v: -(v.potencia_cv or 0),
     }
-    encontrados = sorted(encontrados, key=chaves.get(ordenar_por, chaves["preco"]))
+    ordenar_por = ordenar_por if ordenar_por in chaves else "preco"
+    encontrados = sorted(encontrados, key=chaves[ordenar_por])
 
     total = len(encontrados)
     mostrados = encontrados[:LIMITE_RESULTADOS]
@@ -134,14 +144,16 @@ def listar_veiculos(
         # catalogo inteiro, e conclui, por exemplo, que so existem as marcas
         # dos carros mais baratos.
         cabecalho = (
-            f"{total} veiculo(s) atendem aos criterios. "
-            f"Mostrando os {len(mostrados)} primeiros, ordenados por {ordenar_por}. "
-            f"ATENCAO: esta lista esta incompleta; nao conclua nada sobre o "
-            f"catalogo inteiro a partir dela. Para o panorama completo use "
+            f"{total} veículos atendem aos critérios. "
+            f"Mostrando os {len(mostrados)} primeiros, ordenados por "
+            f"{ROTULOS_ORDENACAO[ordenar_por]}. "
+            f"Atenção: esta lista está incompleta; não conclua nada sobre o "
+            f"catálogo inteiro a partir dela. Para o panorama completo use "
             f"resumo_catalogo, ou refine os filtros."
         )
     else:
-        cabecalho = f"{total} veiculo(s), ordenados por {ordenar_por}:"
+        plural = "veículo" if total == 1 else "veículos"
+        cabecalho = f"{total} {plural}, ordenados por {ROTULOS_ORDENACAO[ordenar_por]}:"
     return f"{cabecalho}\n{corpo}"
 
 
@@ -179,7 +191,7 @@ def resumo_catalogo(catalogo: RepositorioCatalogo) -> str:
     """
     veiculos = catalogo.listar()
     if not veiculos:
-        return "O catalogo esta vazio."
+        return "O catálogo está vazio."
 
     por_marca: dict[str, int] = {}
     por_categoria: dict[str, int] = {}
@@ -189,7 +201,7 @@ def resumo_catalogo(catalogo: RepositorioCatalogo) -> str:
 
     precos = [v.preco_fipe for v in veiculos if v.preco_fipe is not None]
     linhas = [
-        f"O catalogo tem {len(veiculos)} veiculos de {len(por_marca)} marcas, todos do ano 2024.",
+        f"O catálogo tem {len(veiculos)} veículos de {len(por_marca)} marcas, todos do ano 2024.",
         "",
         "Marcas, com a quantidade de modelos de cada uma:",
     ]
@@ -199,6 +211,6 @@ def resumo_catalogo(catalogo: RepositorioCatalogo) -> str:
     if precos:
         linhas += [
             "",
-            f"Faixa de preco: de {_reais(min(precos))} a {_reais(max(precos))}.",
+            f"Faixa de preço: de {_reais(min(precos))} a {_reais(max(precos))}.",
         ]
     return "\n".join(linhas)

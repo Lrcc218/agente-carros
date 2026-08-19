@@ -105,8 +105,8 @@ class Configuracao:
         if not self.chave_api:
             esperadas = " ou ".join(VARIAVEIS_DE_CHAVE.get(self.provedor_llm, ("?",)))
             raise ValueError(
-                f"Chave de API nao configurada para o provedor '{self.provedor_llm}'. "
-                f"Defina {esperadas} no arquivo .env, "
+                f"Chave de API não configurada para o provedor '{self.provedor_llm}'. "
+                f"Defina {esperadas} no arquivo .env "
                 "ou no painel de segredos da plataforma de deploy."
             )
 

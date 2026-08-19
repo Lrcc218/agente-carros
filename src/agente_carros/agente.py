@@ -29,7 +29,7 @@ from agente_carros.ferramentas.simular_viagem import (
 
 INSTRUCOES = """\
 Voce e um assistente de pesquisa para quem esta escolhendo um carro para comprar.
-Responde em portugues do Brasil, de forma direta e objetiva.
+Responda em portugues do Brasil, de forma direta e objetiva.
 
 Voce tem um catalogo fechado de 28 modelos do ano 2024, que vai do hatch de
 entrada ao superesportivo. Os precos vem da Tabela FIPE e os dados de consumo
@@ -127,8 +127,8 @@ class SimulacaoViagem(BaseModel):
     estado: str = Field(
         default="BR",
         description=(
-            "Sigla do estado onde o combustivel sera abastecido, como SP ou MG. "
-            "Usa o preco oficial praticado la. Deixe BR para a mediana nacional."
+            "Sigla do estado onde o abastecimento acontece, como SP ou MG. "
+            "Usa o preço oficial praticado lá. Deixe BR para a mediana nacional."
         ),
     )
     preco_gasolina: float | None = Field(
@@ -162,7 +162,7 @@ class SimulacaoViagem(BaseModel):
 
 class ConsultaPrecos(BaseModel):
     estado: str = Field(
-        default="BR", description="Sigla do estado, como SP. Use BR para a media nacional."
+        default="BR", description="Sigla do estado, como SP. Use BR para a mediana nacional."
     )
 
 

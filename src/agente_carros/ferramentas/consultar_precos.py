@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agente_carros.dominio.portas import RepositorioPrecosCombustivel
+from agente_carros.ferramentas.formato import formatar_reais
 
 # Acima desta razao entre o preco do etanol e o da gasolina, o etanol deixa
 # de compensar num flex tipico, porque rende menos por litro. A regra dos
@@ -33,17 +34,17 @@ def consultar_precos(precos: RepositorioPrecosCombustivel, uf: str = "BR") -> st
     if not encontrados:
         disponiveis = ", ".join(precos.estados_disponiveis())
         return (
-            f"Nao ha apuracao de precos para '{uf}'. "
-            f"Estados disponiveis: {disponiveis}. Use BR para a media nacional."
+            f"Não há apuração de preços para '{uf}'. "
+            f"Estados disponíveis: {disponiveis}. Use BR para a mediana nacional."
         )
 
     referencia = next(iter(encontrados.values()))
-    linhas.append(f"Precos medianos {escopo}, conforme o {referencia.descricao_periodo}:")
+    linhas.append(f"Preços medianos {escopo}, conforme o {referencia.descricao_periodo}:")
     for produto, preco in encontrados.items():
         linhas.append(
-            f"  {NOMES[produto]}: R$ {preco.preco_mediano:.2f}/litro "
-            f"(varia de R$ {preco.preco_minimo:.2f} a R$ {preco.preco_maximo:.2f} "
-            f"em {preco.amostras} postos)"
+            f"  {NOMES[produto]}: {formatar_reais(preco.preco_mediano)} por litro "
+            f"(varia de {formatar_reais(preco.preco_minimo)} a "
+            f"{formatar_reais(preco.preco_maximo)} em {preco.amostras} postos)"
         )
 
     gasolina = encontrados.get("gasolina")
@@ -52,9 +53,9 @@ def consultar_precos(precos: RepositorioPrecosCombustivel, uf: str = "BR") -> st
         razao = etanol.preco_mediano / gasolina.preco_mediano
         veredito = "compensa" if razao <= LIMITE_VANTAGEM_ETANOL else "nao compensa"
         linhas.append(
-            f"  O etanol esta a {razao:.0%} do preco da gasolina, entao pela regra "
-            f"dos 70% ele {veredito} num flex tipico. Para um carro especifico, "
-            f"use a simulacao de viagem, que compara com o consumo real do modelo."
+            f"  O etanol está a {razao:.0%} do preço da gasolina, então, pela regra "
+            f"dos 70%, ele {veredito} num flex típico. Para um carro específico, "
+            f"use a simulação de viagem, que compara com o consumo real do modelo."
         )
     return "\n".join(linhas)
 
@@ -65,14 +66,14 @@ def ranking_estados(
     """Estados mais baratos e mais caros para um combustivel."""
     lista = precos.por_estado(produto)
     if not lista:
-        return f"Nao ha apuracao por estado para '{produto}'."
+        return f"Não há apuração por estado para '{produto}'."
 
     nome = NOMES.get(produto, produto)
     baratos = lista[:quantidade]
     caros = list(reversed(lista[-quantidade:]))
 
     linhas = [f"{nome}, por estado, conforme o {lista[0].descricao_periodo}:", "", "Mais baratos:"]
-    linhas += [f"  {p.uf}: R$ {p.preco_mediano:.2f}/litro" for p in baratos]
+    linhas += [f"  {p.uf}: {formatar_reais(p.preco_mediano)} por litro" for p in baratos]
     linhas += ["", "Mais caros:"]
-    linhas += [f"  {p.uf}: R$ {p.preco_mediano:.2f}/litro" for p in caros]
+    linhas += [f"  {p.uf}: {formatar_reais(p.preco_mediano)} por litro" for p in caros]
     return "\n".join(linhas)

@@ -55,12 +55,12 @@ def test_ranking_ordena_do_mais_barato_ao_mais_caro(precos):
 def test_consulta_traz_a_leitura_de_etanol_contra_gasolina(precos):
     texto = consultar_precos(precos, "SP")
     assert "Etanol hidratado" in texto
-    assert "% do preco da gasolina" in texto
+    assert "% do preço da gasolina" in texto
 
 
 def test_consulta_a_estado_inexistente_sugere_os_validos(precos):
     texto = consultar_precos(precos, "ZZ")
-    assert "Nao ha apuracao" in texto
+    assert "Não há apuração" in texto
     assert "SP" in texto
 
 

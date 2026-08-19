@@ -36,97 +36,101 @@ class Passo:
 PASSOS: list[Passo] = [
     Passo(
         selo="Bem-vindo",
-        titulo="Um consultor para quem esta pesquisando carro",
+        titulo="Um consultor para quem está pesquisando carro",
         texto=(
-            "Pesquisar carro hoje significa abrir uma aba para a ficha tecnica, outra "
-            "para a tabela FIPE, outra para o consumo, e ainda fazer a conta da viagem "
-            "no papel. Este agente junta tudo isso e responde em uma frase."
+            "Pesquisar carro hoje significa abrir uma aba para a ficha técnica, outra "
+            "para a Tabela FIPE, outra para o consumo, e ainda fazer a conta da viagem "
+            "no papel. Este agente junta tudo isso e responde de uma vez só."
         ),
         itens=[
             "28 modelos do ano 2024, do hatch de entrada ao superesportivo",
-            "14 marcas, da Fiat a Ferrari",
-            "Conversa em portugues, sem formulario nem filtro para preencher",
+            "14 marcas, da Fiat à Ferrari",
+            "Conversa em português, sem formulário para preencher nem filtro para marcar",
         ],
     ),
     Passo(
         selo="Passo 1 de 5",
-        titulo="De onde vem cada numero",
+        titulo="De onde vem cada número",
         texto=(
             "Nenhum dado aqui foi inventado nem estimado. Cada resposta cita a fonte, "
-            "e voce pode conferir qualquer numero na origem."
+            "e você pode conferir qualquer número na origem."
         ),
         itens=[
-            "Precos: Tabela FIPE, com o mes de referencia informado",
+            "Preços: Tabela FIPE, com o mês de referência informado",
             "Consumo: PBE Veicular do Inmetro, o programa oficial de etiquetagem",
-            "Combustivel: levantamento de precos da ANP, posto a posto, por estado",
+            "Combustível: levantamento de preços da ANP, posto a posto, por estado",
         ],
         aviso=(
-            "As contas de viagem sao feitas em Python, nao pelo modelo de linguagem. "
-            "Modelos de IA erram aritmetica com frequencia e confianca."
+            "As contas de viagem são feitas em Python, e não pelo modelo de linguagem. "
+            "Modelos de IA erram contas com frequência — e com confiança."
         ),
     ),
     Passo(
         selo="Passo 2 de 5",
         titulo="O que ele consegue fazer",
-        texto="Cinco tipos de pergunta, que podem ser combinados numa conversa.",
+        texto="Seis tipos de pergunta, que podem ser combinados numa mesma conversa.",
         itens=[
-            "Ficha tecnica: motor, potencia, torque, cambio, tracao, porta-malas",
-            "Preco: valor da FIPE de qualquer modelo do catalogo",
-            "Busca e comparacao: filtrar por preco, categoria ou combustivel",
-            "Simulacao de viagem: litros e reais, separando cidade e estrada",
-            "Documentos do Inmetro: metodologia e faixas de eficiencia energetica",
+            "Ficha técnica: motor, potência, torque, câmbio, tração, porta-malas",
+            "Preço: valor da FIPE de qualquer modelo do catálogo",
+            "Busca e comparação: filtrar por preço, categoria ou combustível, "
+            "e comparar modelos lado a lado",
+            "Simulação de viagem: litros e reais, separando cidade e estrada",
+            "Preços de combustível: quanto custa em cada estado, e onde o etanol compensa",
+            "Manual do proprietário do Corolla: revisão, fluidos, pneus e garantia",
         ],
     ),
     Passo(
         selo="Passo 3 de 5",
         titulo="Como perguntar",
         texto=(
-            "Escreva como falaria com um vendedor que entende do assunto. Nao precisa "
-            "de palavra-chave nem de formato especial. Quanto mais contexto voce der, "
+            "Escreva como falaria com um vendedor que entende do assunto. Não precisa "
+            "de palavras-chave nem de formato especial. Quanto mais contexto você der, "
             "melhor a resposta."
         ),
         exemplos=[
-            "Quais carros custam ate 70 mil?",
-            "Quanto gasto de Sao Paulo ao Rio, 430 km, ida e volta, com o Corolla?",
+            "Quais carros custam até 70 mil?",
+            "Quanto gasto de São Paulo ao Rio, 430 km, ida e volta, com o Corolla?",
             "Compare o Onix com o HB20",
-            "Qual o SUV mais economico na estrada?",
-            "Compensa abastecer com etanol aqui em Minas?",
+            "Qual é o SUV mais econômico na estrada?",
+            "De quantas em quantas revisões troco o fluido de arrefecimento do Corolla?",
         ],
         aviso=(
-            "Para simular viagem, informe a distancia. Diga tambem o seu estado, e o "
-            "calculo usa o preco de combustivel praticado la."
+            "Para simular uma viagem, informe a distância. Diga também o seu estado: "
+            "o cálculo usa o preço do combustível praticado lá."
         ),
     ),
     Passo(
         selo="Passo 4 de 5",
-        titulo="A conversa tem memoria",
+        titulo="A conversa tem memória",
         texto=(
-            "O agente lembra do que voce ja perguntou, entao da para refinar sem "
-            "repetir tudo. Pergunte o preco de um carro e, em seguida, apenas "
-            "'e o consumo dele?' — ele entende de quem voce esta falando."
+            "O agente lembra o que você já perguntou, então dá para refinar sem "
+            "repetir tudo. Pergunte o preço de um carro e, em seguida, apenas "
+            "'e o consumo dele?' — ele entende de qual carro você está falando."
         ),
         itens=[
             "Use a barra lateral para ver a lista completa dos 28 modelos",
-            "O botao Limpar conversa recomeca do zero quando quiser",
-            "O botao Tutorial reabre estas telas a qualquer momento",
+            "O botão Limpar conversa recomeça do zero a qualquer momento",
+            "O botão Tutorial reabre estas telas quando você quiser",
         ],
     ),
     Passo(
         selo="Passo 5 de 5",
-        titulo="O que ele nao faz, e diz que nao faz",
+        titulo="O que ele não faz — e diz que não faz",
         texto=(
-            "Um assistente util precisa saber onde para. Nestes casos ele recusa e "
-            "explica o motivo, em vez de inventar uma resposta que parece boa."
+            "Um assistente útil precisa saber onde parar. Nesses casos ele recusa e "
+            "explica o motivo, em vez de inventar uma resposta que pareça boa."
         ),
         itens=[
-            "Carros fora do catalogo: ele avisa e sugere modelos parecidos que tem",
-            "T-Cross em viagem: sem consumo publicado no Inmetro, nao simula",
-            "Eletricos em custo de viagem: ha autonomia, mas nao consumo em kWh",
-            "Financiamento, negociacao e valor de revenda futuro: fora do escopo",
+            "Carros fora do catálogo: ele avisa e sugere modelos parecidos que existem "
+            "no catálogo",
+            "Manutenção de outros modelos: só o Corolla tem manual indexado até agora",
+            "Elétricos no custo de viagem: o catálogo tem autonomia, mas não tem o "
+            "consumo em kWh",
+            "Financiamento, negociação e valor futuro de revenda: fora do escopo",
         ],
         aviso=(
-            "A ficha tecnica ainda esta em conferencia contra o material das "
-            "montadoras. Preco e consumo vem de fonte oficial."
+            "A ficha técnica ainda está sendo conferida com o material das "
+            "montadoras. Preço e consumo vêm de fonte oficial."
         ),
     ),
 ]
@@ -279,7 +283,7 @@ def renderizar() -> None:
             st.rerun()
 
     with direita:
-        rotulo = "Comecar a usar ✓" if ultimo else "Avancar →"
+        rotulo = "Começar a usar ✓" if ultimo else "Avançar →"
         if st.button(
             rotulo, use_container_width=True, type="primary", key="tutorial_avancar"
         ):

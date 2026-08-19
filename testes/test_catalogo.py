@@ -64,19 +64,19 @@ def test_listagem_ordena_por_preco_crescente(catalogo):
 
 
 def test_listagem_sem_resultado_avisa(catalogo):
-    assert "Nenhum veiculo" in listar_veiculos(catalogo, preco_maximo=1000)
+    assert "Nenhum veículo" in listar_veiculos(catalogo, preco_maximo=1000)
 
 
 def test_ficha_cita_a_procedencia_dos_dados(catalogo):
     ficha = buscar_veiculo(catalogo, "hilux")
-    assert "Preco FIPE" in ficha
-    assert "Referencia FIPE" in ficha
-    assert "Versao no PBE Veicular" in ficha
+    assert "Preço FIPE" in ficha
+    assert "Referência FIPE" in ficha
+    assert "Versão no PBE Veicular" in ficha
 
 
 def test_busca_sem_resultado_sugere_as_marcas(catalogo):
     resposta = buscar_veiculo(catalogo, "lamborghini")
-    assert "Nenhum veiculo" in resposta
+    assert "Nenhum veículo" in resposta
     assert "Ferrari" in resposta
 
 
@@ -122,14 +122,14 @@ def test_resumo_traz_todas_as_marcas(catalogo):
 def test_resumo_conta_certo(catalogo):
     texto = resumo_catalogo(catalogo)
 
-    assert "28 veiculos" in texto
+    assert "28 veículos" in texto
     assert "14 marcas" in texto
 
 
 def test_resumo_traz_a_faixa_de_preco(catalogo):
     texto = resumo_catalogo(catalogo)
 
-    assert "Faixa de preco" in texto
+    assert "Faixa de preço" in texto
     assert "3.309.948" in texto  # a Ferrari, o teto do catalogo
 
 

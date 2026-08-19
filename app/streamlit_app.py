@@ -26,22 +26,22 @@ from agente_carros.fabrica import criar_agente  # noqa: E402
 TITULO = "Consultor de carros"
 SELO = "Agente de IA · dados oficiais"
 SUBTITULO = (
-    "Ficha tecnica, preco da Tabela FIPE, consumo do Inmetro e simulacao do custo "
-    "real de uma viagem, com o preco de combustivel praticado no seu estado. "
+    "Ficha técnica, preço da Tabela FIPE, consumo do Inmetro e simulação do custo "
+    "real de uma viagem, com o preço do combustível praticado no seu estado. "
     "28 modelos, do hatch de entrada ao superesportivo."
 )
-FONTES = ["Tabela FIPE", "PBE Veicular / Inmetro", "Levantamento de precos da ANP"]
+FONTES = ["Tabela FIPE", "PBE Veicular / Inmetro", "Levantamento de preços da ANP"]
 
 EXEMPLOS = [
-    "Quais carros custam ate 70 mil?",
-    "Quanto gasto de combustivel indo de Sao Paulo ao Rio, 430 km, com o Corolla?",
+    "Quais carros custam até 70 mil?",
+    "Quanto gasto de combustível indo de São Paulo ao Rio, 430 km, com o Corolla?",
     "Compare o Onix com o HB20",
-    "No Compass, compensa mais gasolina ou etanol?",
-    "Qual o SUV mais economico na estrada?",
+    "No Compass, compensa mais a gasolina ou o etanol?",
+    "Qual é o SUV mais econômico na estrada?",
 ]
 
 
-@st.cache_resource(show_spinner="Carregando o catalogo e o agente...")
+@st.cache_resource(show_spinner="Carregando o catálogo e o agente...")
 def carregar_agente():
     """Monta o agente uma unica vez por sessao do servidor."""
     return criar_agente()
@@ -51,41 +51,41 @@ def mostrar_barra_lateral(montagem) -> None:
     with st.sidebar:
         st.subheader("Sobre")
         st.write(
-            "Precos da Tabela FIPE e consumo do PBE Veicular do Inmetro. "
-            "As contas de viagem sao feitas em Python, nao pelo modelo de linguagem."
+            "Preços da Tabela FIPE e consumo do PBE Veicular do Inmetro. "
+            "As contas de viagem são feitas em Python, e não pelo modelo de linguagem."
         )
 
         veiculos = montagem.catalogo.listar()
-        st.metric("Modelos no catalogo", len(veiculos))
+        st.metric("Modelos no catálogo", len(veiculos))
         referencia = next((v.mes_referencia_fipe for v in veiculos if v.mes_referencia_fipe), "")
         if referencia:
-            st.caption(f"Precos com referencia de {referencia}.")
+            st.caption(f"Preços com referência de {referencia}.")
 
         if not montagem.tem_indice:
             st.warning(montagem.aviso)
 
-        with st.expander("Ver os modelos"):
+        with st.expander("Ver os 28 modelos"):
             for veiculo in sorted(veiculos, key=lambda v: (v.marca, v.modelo)):
                 st.write(f"- {veiculo.marca} {veiculo.modelo} {veiculo.versao}")
 
         st.divider()
-        if st.button("📖  Tutorial", use_container_width=True, key="abrir_tutorial"):
+        if st.button("📖 Tutorial", use_container_width=True, key="abrir_tutorial"):
             tutorial.abrir()
             st.rerun()
         if st.button(
-            "Mostrar tutorial a cada visita",
+            "Voltar a mostrar o tutorial",
             use_container_width=True,
             key="esquecer_tutorial",
-            help="Apaga a preferencia guardada neste navegador",
+            help="Apaga a preferência guardada neste navegador",
         ):
             tutorial.esquecer()
-            st.toast("O tutorial voltara a abrir sozinho neste navegador.")
+            st.toast("O tutorial voltará a abrir sozinho neste navegador.")
         if st.button("Limpar conversa", use_container_width=True, key="limpar_conversa"):
             st.session_state.mensagens = []
             st.rerun()
 
         st.caption(
-            "A ficha tecnica esta em conferencia. Preco e consumo vem de fonte oficial."
+            "A ficha técnica está em conferência. Preço e consumo vêm de fonte oficial."
         )
 
 
@@ -94,21 +94,27 @@ def mensagem_de_erro(erro: Exception) -> str:
     texto = str(erro)
     if "429" in texto or "RESOURCE_EXHAUSTED" in texto or "quota" in texto.lower():
         return (
-            "A cota gratuita do provedor de IA foi atingida. As camadas gratuitas "
+            "A cota gratuita do provedor de IA foi atingida. Os planos gratuitos "
             "limitam quantas perguntas podem ser feitas por dia. Tente de novo mais "
-            "tarde, ou configure outro modelo em `MODELO_CHAT`."
+            "tarde."
         )
     if "API key" in texto or "401" in texto or "403" in texto:
         return (
-            "A chave de API foi recusada pelo provedor. Confira se ela e valida e se "
-            "a conta tem permissao de inferencia."
+            "A chave de API foi recusada pelo provedor. Confira se ela é válida e se "
+            "a conta tem permissão de inferência."
         )
-    return f"Nao consegui responder agora. Detalhe tecnico: {texto[:300]}"
+    return f"Não consegui responder agora. Detalhe técnico: {texto[:300]}"
+
+
+# Quantas mensagens anteriores acompanham cada pergunta. Sem teto, uma
+# conversa longa reenvia tudo a cada turno, o que gasta cota e chega a
+# estourar o contexto do modelo.
+TURNOS_DE_HISTORICO = 12
 
 
 def responder(montagem, pergunta: str) -> str:
     historico = []
-    for mensagem in st.session_state.mensagens[:-1]:
+    for mensagem in st.session_state.mensagens[:-1][-TURNOS_DE_HISTORICO:]:
         papel = "human" if mensagem["papel"] == "user" else "ai"
         historico.append((papel, mensagem["conteudo"]))
 
@@ -129,7 +135,7 @@ def main() -> None:
     try:
         montagem = carregar_agente()
     except Exception as erro:  # noqa: BLE001 - a interface precisa mostrar qualquer falha
-        st.error(f"Nao foi possivel iniciar o agente: {erro}")
+        st.error(f"Não foi possível iniciar o agente: {erro}")
         st.stop()
 
     if "mensagens" not in st.session_state:
@@ -162,7 +168,9 @@ def main() -> None:
     if not st.session_state.mensagens:
         st.markdown(rodape(FONTES), unsafe_allow_html=True)
 
-    pergunta = st.chat_input("Pergunte sobre um carro, um preco ou uma viagem")
+    pergunta = st.chat_input(
+        "Pergunte sobre um carro, um preço ou uma viagem", max_chars=2000
+    )
     if not pergunta:
         pergunta = st.session_state.pop("pergunta_pendente", None)
     if not pergunta:
@@ -173,7 +181,7 @@ def main() -> None:
         st.markdown(pergunta)
 
     with st.chat_message("assistant"):
-        with st.spinner("Consultando o catalogo..."):
+        with st.spinner("Consultando o catálogo..."):
             try:
                 resposta = responder(montagem, pergunta)
             except Exception as erro:  # noqa: BLE001 - falha de rede ou de cota

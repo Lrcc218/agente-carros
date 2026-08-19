@@ -99,13 +99,13 @@ def criar_agente(config: Configuracao | None = None) -> Montagem:
     pendencias = []
     if base_vetorial is None:
         pendencias.append(
-            "Indice de documentos nao encontrado; perguntas sobre os documentos do "
-            "Inmetro nao serao respondidas. Rode: python scripts/indexar_documentos.py"
+            "Índice de documentos não encontrado; perguntas sobre os documentos "
+            "oficiais e sobre o manual não serão respondidas."
         )
     if precos is None:
         pendencias.append(
-            "Precos da ANP nao encontrados; a simulacao usara valores de referencia "
-            "em vez do preco do seu estado. Rode: python scripts/coletar_precos_anp.py"
+            "Preços da ANP não encontrados; a simulação usará valores de referência "
+            "em vez do preço do seu estado."
         )
 
     return Montagem(

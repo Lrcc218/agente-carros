@@ -434,8 +434,8 @@ def rodape(fontes: list[str]) -> str:
     return f"""
     <div class="rodape-fontes">
       {selos}<br/>
-      Os calculos de viagem sao feitos em Python, com dados oficiais.
+      As contas de viagem são feitas em Python, com dados oficiais.
       O modelo de linguagem interpreta a pergunta e redige a resposta,
-      mas nao produz numeros por conta propria.
+      mas não produz números por conta própria.
     </div>
     """
