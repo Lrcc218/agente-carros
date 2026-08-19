@@ -131,13 +131,13 @@ def test_recusa_veiculo_eletrico():
 
 @pytest.mark.parametrize("distancia", [0, -50])
 def test_recusa_distancia_invalida(distancia):
-    with pytest.raises(ValueError, match="distancia"):
+    with pytest.raises(ValueError, match="[Dd]ist[âa]ncia"):
         simular_viagem(montar_veiculo(), distancia_km=distancia)
 
 
 @pytest.mark.parametrize("proporcao", [-0.1, 1.5])
 def test_recusa_proporcao_invalida(proporcao):
-    with pytest.raises(ValueError, match="proporcao"):
+    with pytest.raises(ValueError, match="percurso em cidade"):
         simular_viagem(montar_veiculo(), distancia_km=100, proporcao_cidade=proporcao)
 
 

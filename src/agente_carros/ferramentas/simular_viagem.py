@@ -8,6 +8,7 @@ porque modelos de linguagem erram aritmetica com frequencia e confianca.
 from __future__ import annotations
 
 from agente_carros.dominio.modelos import CustoPorCombustivel, ResultadoViagem, Veiculo
+from agente_carros.ferramentas.formato import formatar_reais
 
 # Usados apenas se o levantamento da ANP nao estiver disponivel. Em operacao
 # normal os precos vem do dataset oficial, ja no estado de quem pergunta.
@@ -75,9 +76,9 @@ def simular_viagem(
     no PBE Veicular — e preferivel recusar a estimar um numero inventado.
     """
     if distancia_km <= 0:
-        raise ValueError("A distancia precisa ser maior que zero.")
+        raise ValueError("A distância precisa ser maior que zero.")
     if not 0.0 <= proporcao_cidade <= 1.0:
-        raise ValueError("A proporcao de cidade precisa estar entre 0 e 1.")
+        raise ValueError("A parcela do percurso em cidade precisa estar entre 0% e 100%.")
 
     if veiculo.e_eletrico:
         raise DadosInsuficientes(
@@ -129,20 +130,26 @@ def simular_viagem(
 
         gasolina, etanol = custos[0], custos[1]
         diferenca = abs(gasolina.custo_total - etanol.custo_total)
-        vencedor = "etanol" if etanol.custo_total < gasolina.custo_total else "gasolina"
-        observacoes.append(
-            f"Nos precos informados, {vencedor} sai R$ {diferenca:.2f} mais barato nesta viagem."
-        )
+        if diferenca < 0.01:
+            observacoes.append(
+                "Com esses preços, gasolina e etanol custam praticamente o mesmo nesta viagem."
+            )
+        else:
+            vencedor = "o etanol" if etanol.custo_total < gasolina.custo_total else "a gasolina"
+            observacoes.append(
+                f"Com os preços informados, {vencedor} custa "
+                f"{formatar_reais(diferenca)} a menos nesta viagem."
+            )
 
     if fonte_precos:
-        observacoes.append(f"Precos de combustivel: {fonte_precos}.")
+        observacoes.append(f"Preços de combustível: {fonte_precos}.")
     if veiculo.versao_pbev:
         observacoes.append(
-            f"Consumo conforme o PBE Veicular do Inmetro, versao {veiculo.versao_pbev}."
+            f"Consumo conforme o PBE Veicular do Inmetro, versão {veiculo.versao_pbev}."
         )
     observacoes.append(
-        "Valores de referencia em condicoes de ensaio. O consumo real varia com "
-        "carga, ar-condicionado, relevo e estilo de conducao."
+        "Valores de referência medidos em condições de ensaio. O consumo real varia "
+        "com carga, ar-condicionado, relevo e estilo de condução."
     )
 
     return ResultadoViagem(

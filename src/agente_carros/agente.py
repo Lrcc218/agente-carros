@@ -19,6 +19,7 @@ from agente_carros.dominio.portas import (
 from agente_carros.ferramentas import consultar_catalogo as catalogo_ferramentas
 from agente_carros.ferramentas.buscar_documentos import buscar_nos_documentos
 from agente_carros.ferramentas.consultar_precos import consultar_precos, ranking_estados
+from agente_carros.ferramentas.formato import formatar_numero, formatar_reais
 from agente_carros.ferramentas.simular_viagem import (
     PRECO_PADRAO_DIESEL,
     PRECO_PADRAO_ETANOL,
@@ -190,23 +191,27 @@ def responder(executor: Any, pergunta: str, historico: list | None = None) -> st
 
 def _formatar_simulacao(resultado) -> str:
     linhas = [
-        f"Simulacao para {resultado.veiculo}",
-        f"  Distancia total: {resultado.distancia_km:.0f} km"
+        f"Simulação para {resultado.veiculo}",
+        f"  Distância total: {formatar_numero(resultado.distancia_km, 0)} km"
         + (" (ida e volta)" if resultado.ida_e_volta else ""),
-        f"  Divisao do percurso: {resultado.proporcao_cidade:.0%} cidade, "
+        f"  Divisão do percurso: {resultado.proporcao_cidade:.0%} cidade, "
         f"{resultado.proporcao_estrada:.0%} estrada",
         "",
     ]
     for custo in resultado.custos:
         linhas += [
-            f"  {custo.combustivel.capitalize()} a R$ {custo.preco_por_litro:.2f}/litro:",
-            f"    Consumo medio na viagem: {custo.consumo_medio_km_l} km/l",
-            f"    Combustivel necessario: {custo.litros_necessarios} litros",
-            f"    Custo total: R$ {custo.custo_total:.2f}",
-            f"    Custo por km: R$ {custo.custo_por_km:.3f}",
+            f"  {custo.combustivel.capitalize()} a {formatar_reais(custo.preco_por_litro)} "
+            f"por litro:",
+            f"    Consumo médio na viagem: {formatar_numero(custo.consumo_medio_km_l)} km/l",
+            f"    Combustível necessário: {formatar_numero(custo.litros_necessarios)} litros",
+            f"    Custo total: {formatar_reais(custo.custo_total)}",
+            f"    Custo por quilômetro: {formatar_reais(custo.custo_por_km)}",
         ]
         if custo.abastecimentos_necessarios is not None:
-            linhas.append(f"    Tanques cheios: {custo.abastecimentos_necessarios}")
+            linhas.append(
+                f"    Tanques necessários: "
+                f"{formatar_numero(custo.abastecimentos_necessarios)}"
+            )
         linhas.append("")
     linhas += [f"  {observacao}" for observacao in resultado.observacoes]
     return "\n".join(linhas)

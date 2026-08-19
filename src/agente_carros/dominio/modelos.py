@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from agente_carros.ferramentas.formato import formatar_data
+
 
 class Combustivel(str, Enum):
     """Combustiveis suportados pela simulacao de viagem."""
@@ -103,7 +105,10 @@ class PrecoCombustivel:
 
     @property
     def descricao_periodo(self) -> str:
-        return f"levantamento da ANP de {self.periodo_inicio} a {self.periodo_fim}"
+        return (
+            f"levantamento da ANP de {formatar_data(self.periodo_inicio)} "
+            f"a {formatar_data(self.periodo_fim)}"
+        )
 
 
 @dataclass(frozen=True)

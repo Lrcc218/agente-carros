@@ -12,14 +12,12 @@ from __future__ import annotations
 
 from agente_carros.dominio.modelos import Veiculo
 from agente_carros.dominio.portas import RepositorioCatalogo
+from agente_carros.ferramentas.formato import formatar_reais
 
 LIMITE_RESULTADOS = 10
 
 
-def _reais(valor: float | None) -> str:
-    if valor is None:
-        return "nao informado"
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+_reais = formatar_reais
 
 
 def _consumo_resumido(veiculo: Veiculo) -> str:
