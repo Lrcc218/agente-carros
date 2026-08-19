@@ -23,3 +23,6 @@ dados/brutos/*
 
 # Progresso de indexacao, temporario
 dados/processados/indice_faiss_parcial/
+
+# Metadados de download do Windows
+*:Zone.Identifier

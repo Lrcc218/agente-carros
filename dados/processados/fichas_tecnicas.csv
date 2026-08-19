@@ -19,11 +19,11 @@ honda_city,Honda,City,Sedan EX 1.5 Flex,2024,sedan_compacto,1.5 i-VTEC aspirado,
 honda_hrv,Honda,HR-V,EX 1.5 Flex,2024,suv_compacto,1.5 i-VTEC aspirado,1.5,126,15.5,Automatico CVT,Dianteira,5,5,354,flex,48,curadoria
 jeep_renegade,Jeep,Renegade,Longitude T270 1.3 Turbo,2024,suv_compacto,1.3 turbo,1.3,185,27.5,Automatico 6 marchas,Dianteira,5,5,320,flex,55,curadoria
 jeep_compass,Jeep,Compass,Serie S T270 1.3 Turbo,2024,suv_medio,1.3 turbo,1.3,185,27.5,Automatico 6 marchas,Dianteira,5,5,410,flex,55,curadoria
-byd_dolphin,BYD,Dolphin,GS 180 EV,2024,eletrico_hatch,Motor eletrico sincrono,,204,31.6,Automatico reducao unica,Dianteira,5,5,345,eletrico,,curadoria
+byd_dolphin,BYD,Dolphin,GS 180 EV,2024,eletrico_hatch,Motor eletrico sincrono,,95,18.4,Automatico reducao unica,Dianteira,5,5,345,eletrico,,"curadoria; specs da versao GS 180, conforme PBE Veicular"
 byd_seal,BYD,Seal,AWD GS 590 EV,2024,eletrico_sedan,Dois motores eletricos sincronos,,530,68.4,Automatico reducao unica,Integral,4,5,400,eletrico,,curadoria
 bmw_320i,BMW,Serie 3,320i Active Flex 2.0 Turbo,2024,sedan_premium,2.0 turbo,2.0,184,30.6,Automatico 8 marchas,Traseira,4,5,480,flex,59,curadoria
 bmw_x1,BMW,X1,sDrive20i 2.0 Turbo,2024,suv_premium,2.0 turbo,2.0,192,28.6,Automatico 7 marchas,Dianteira,5,5,540,gasolina,54,curadoria
-mercedes_c200,Mercedes-Benz,Classe C,C 200 AMG Line 1.5 Turbo Hibrido,2024,sedan_premium,1.5 turbo com sistema hibrido leve,1.5,204,30.6,Automatico 9 marchas,Traseira,4,5,455,gasolina,66,curadoria
-porsche_718,Porsche,718 Boxster,GTS 4.0 Conversivel,2024,esportivo_conversivel,4.0 boxer aspirado,4.0,400,43.8,Automatico PDK 7 marchas,Traseira,2,2,150,gasolina,64,curadoria
-porsche_911,Porsche,911,Carrera 3.0 Biturbo,2024,esportivo,3.0 boxer biturbo,3.0,394,45.9,Automatico PDK 8 marchas,Traseira,2,4,132,gasolina,67,curadoria
-ferrari_296,Ferrari,296,GTB Plug-in Hibrido,2024,superesportivo,3.0 V6 biturbo com motor eletrico,3.0,830,75.5,Automatico DCT 8 marchas,Traseira,2,2,201,gasolina,65,curadoria
+mercedes_c200,Mercedes-Benz,Classe C,C 200 AMG Line 1.5 Turbo Hibrido,2024,sedan_premium,1.5 turbo com sistema hibrido leve,1.5,204,30.6,Automatico 9 marchas,Traseira,4,5,455,hibrido,66,curadoria
+porsche_718,Porsche,718 Boxster,GTS 4.0 Conversivel,2024,esportivo_conversivel,4.0 boxer aspirado,4.0,400,43.8,Automatico PDK 7 marchas,Traseira,2,2,275,gasolina,64,curadoria
+porsche_911,Porsche,911,Carrera 3.0 Biturbo,2024,esportivo,3.0 boxer biturbo,3.0,385,45.9,Automatico PDK 8 marchas,Traseira,2,4,132,gasolina,67,curadoria
+ferrari_296,Ferrari,296,GTB Plug-in Hibrido,2024,superesportivo,3.0 V6 biturbo com motor eletrico,3.0,830,75.5,Automatico DCT 8 marchas,Traseira,2,2,201,hibrido_plugin,65,curadoria

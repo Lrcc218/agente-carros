@@ -19,12 +19,16 @@ def test_todo_veiculo_tem_preco_da_fipe(catalogo):
     assert sem_preco == []
 
 
-def test_apenas_o_tcross_fica_sem_consumo(catalogo):
-    """O T-Cross nao consta no PBE Veicular; os demais precisam ter consumo."""
+def test_todo_veiculo_a_combustao_tem_consumo(catalogo):
+    """Regressao: o T-Cross ficava de fora por erro de casamento de texto.
+
+    O PDF do Inmetro grafa "T CROSS" sem hifen, e o padrao do mapa procurava
+    "T-CROSS". O dado sempre existiu na fonte.
+    """
     sem_consumo = {
         v.id for v in catalogo.listar() if not v.tem_dados_de_consumo and not v.e_eletrico
     }
-    assert sem_consumo == {"vw_tcross"}
+    assert sem_consumo == set()
 
 
 def test_busca_exige_todas_as_palavras(catalogo):
@@ -76,8 +80,12 @@ def test_busca_sem_resultado_sugere_as_marcas(catalogo):
     assert "Ferrari" in resposta
 
 
-def test_tcross_declara_a_ausencia_de_consumo(catalogo):
-    assert "nao publicado" in buscar_veiculo(catalogo, "t-cross")
+def test_tcross_tem_consumo_do_inmetro(catalogo):
+    veiculo = catalogo.buscar_por_nome("t-cross")[0]
+
+    assert veiculo.consumo_cidade == 12.1
+    assert veiculo.consumo_estrada == 14.5
+    assert "T CROSS SENSE" in veiculo.versao_pbev
 
 
 def test_comparacao_traz_os_dois_veiculos(catalogo):

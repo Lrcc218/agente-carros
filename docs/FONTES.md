@@ -63,10 +63,11 @@ significado das faixas de eficiencia.
 As duas fontes nomeiam versoes de maneira diferente e nem sempre cobrem o
 mesmo conjunto. O que foi encontrado neste catalogo:
 
-- **Volkswagen T-Cross** nao consta nas tabelas de 2025 nem de 2026. O modelo
-  permanece no catalogo com preco e ficha tecnica, sem dados de consumo. O
-  agente informa a ausencia em vez de estimar, e a simulacao de viagem nao
-  esta disponivel para ele.
+- **Volkswagen T-Cross** parecia ausente das tabelas, mas o dado sempre
+  existiu: o PDF grafa "VW T CROSS", sem hifen, e o padrao do mapa procurava
+  "T-CROSS". Corrigido o padrao, os 28 veiculos passaram a ter consumo. Fica
+  o registro de que uma limitacao aparente da fonte era, na verdade, erro de
+  casamento de texto do nosso lado.
 - **Fiat Strada** e **Mercedes-Benz C 200** so aparecem na tabela de 2025.
 - **BMW X1** e **Porsche 718 Boxster** tiveram a versao do catalogo ajustada
   para a que existe em ambas as fontes (sDrive20i 2.0 e GTS 4.0).

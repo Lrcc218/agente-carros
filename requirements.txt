@@ -1,3 +1,6 @@
+# Versoes fixadas nas que foram efetivamente testadas neste projeto.
+# Conferir com: pip install --dry-run -r requirements.txt
+
 # Interface
 streamlit==1.61.1
 
@@ -6,17 +9,24 @@ langchain==1.3.15
 langchain-classic==1.0.8
 langchain-core==1.5.6
 langchain-community==0.4.2
+langchain-text-splitters==1.1.2
+
+# Provedores de IA. O ativo e escolhido por PROVEDOR_LLM no .env.
 langchain-google-genai==4.3.4
 langchain-nvidia-ai-endpoints==1.4.3
 
 # Base vetorial e leitura de documentos
 faiss-cpu==1.15.0
-pypdf==5.1.0
+pypdf==6.15.0
 
 # Dados estruturados
-pandas==2.2.3
+pandas==3.0.5
 
 # Infraestrutura
-python-dotenv==1.0.1
-requests==2.32.3
-pydantic==2.9.2
+python-dotenv==1.2.2
+requests==2.34.2
+pydantic==2.13.4
+
+# Dependencia transitiva do Streamlit, fixada por conta de vulnerabilidades
+# conhecidas nas versoes 10.x.
+pillow==12.3.0

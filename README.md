@@ -102,7 +102,6 @@ inventar, nestes casos:
 | Pergunta | Por que recusa |
 | --- | --- |
 | "Quanto gasta o Fiat Uno?" | Fora do catalogo. Ele diz isso e sugere modelos parecidos |
-| "Quanto gasta o T-Cross numa viagem?" | O T-Cross nao consta no PBE Veicular; ele informa a ausencia em vez de estimar |
 | "Quanto custa carregar o BYD Dolphin numa viagem?" | O catalogo tem km/l equivalente e autonomia, mas nao kWh, entao o custo em reais nao e calculavel |
 | "Vale a pena financiar em 48 vezes?" | Nao da conselho financeiro nem simula financiamento |
 | "Quanto vai valer esse carro em 2030?" | Nao projeta valor de revenda |
@@ -370,8 +369,6 @@ fixando esse comportamento.
   porta-malas foram preenchidos manualmente e ainda nao foram conferidos contra
   o material das montadoras. Preco e consumo, que sustentam a maior parte das
   respostas, vem de fonte oficial.
-- **T-Cross sem consumo.** Nao consta nas tabelas do Inmetro de 2025 nem de
-  2026. Permanece no catalogo com preco e ficha, sem simulacao de viagem.
 - **Eletricos sem custo de viagem.** O Inmetro publica km por litro equivalente
   e autonomia, mas nao o consumo em kWh. Incluir kWh/100km por modelo habilitaria
   a simulacao.
