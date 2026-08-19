@@ -20,7 +20,7 @@ data em que a coleta foi executada.
 
 **Criterio de selecao.** Para cada modelo da semente, o script mantem apenas
 as versoes ofertadas no ano desejado e escolhe a de menor preco, que
-corresponde a versao de entrada. O filtro por ano e essencial: a FIPE lista
+corresponde à versao de entrada. O filtro por ano e essencial: a FIPE lista
 versoes homonimas de decadas diferentes, e sem ele um Polo 1997 entra no
 lugar do Polo atual.
 
@@ -97,7 +97,7 @@ e numero de postos, para que a dispersao fique visivel.
 **Descoberta dos links.** O script le a pagina da ANP e escolhe o arquivo mais
 recente, em vez de montar a URL por regra. Os nomes mudam a cada mes — ha
 `01-dados-abertos-precos-gasolina-etanol.csv`, mas tambem
-`02-cados-abertos-preco-gasolina-etanol.csv`, com erro de digitacao, e
+`02-cados-abertos-preco-gasolina-etanol.csv`, com erro de digitacao na origem, e
 `06-dados-abertos-precos-2026-06-gasolina-etanol.csv`. Alem disso ha meses
 faltando na sequencia. Montar a URL quebraria na proxima atualizacao.
 
@@ -116,7 +116,7 @@ python scripts/coletar_precos_anp.py
 | Catalogo | `dados/manuais.csv` |
 | Estado | Inclusao manual, opcional |
 
-Diferente das demais, esta fonte nao e automatizavel. Verificacao feita durante
+Diferentemente das demais, esta fonte nao e automatizavel. Verificacao feita durante
 a construcao do projeto:
 
 - **Volkswagen** — 279 PDFs com link direto na pagina de manuais, download
@@ -168,9 +168,10 @@ Conferencia pendente, por modelo:
 compacta e media, SUV compacto e medio, sedan compacto, medio e premium,
 eletricos, esportivos e superesportivo.
 
-O catalogo e deliberadamente restrito. Ampliar significa acrescentar linhas
-em `dados/catalogo_semente.csv` e em `dados/processados/fichas_tecnicas.csv`
-usando o mesmo `id`, e rodar novamente a coleta de precos.
+O catalogo e deliberadamente restrito. Ampliar significa acrescentar uma linha
+com o mesmo `id` em tres arquivos — `dados/catalogo_semente.csv`,
+`dados/processados/fichas_tecnicas.csv` e `dados/mapa_pbev.csv` — e rodar de
+novo a coleta de precos e a extracao de consumo.
 
 
 ## 7. Provedor de modelos de IA
@@ -187,7 +188,7 @@ nao exige alteracao de codigo.
 O Gemini e o padrao por decisao operacional: durante a construcao do projeto a
 conta da NVIDIA ficou sem permissao de inferencia — a chave era gerada, mas
 toda chamada a `/v1/chat/completions` e a `/v1/embeddings` respondia
-`403 Authorization failed`, igual a uma chave invalida. Como a liberacao depende
+`403 Authorization failed`, como se fosse uma chave invalida. Como a liberacao depende
 do suporte da NVIDIA, o projeto passou a usar o Gemini, que libera a chave na
 hora e sem cadastro adicional.
 

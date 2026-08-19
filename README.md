@@ -6,7 +6,7 @@ combustivel de uma viagem.
 
 Quem pesquisa carro hoje abre uma aba para a ficha tecnica, outra para a FIPE,
 outra para o consumo e ainda faz a conta da viagem na mao. O agente junta as
-tres fontes e responde em uma frase.
+tres fontes e responde de uma vez so.
 
 > **Evidencia do deploy:** _(link da aplicacao, video ou captura de tela)_
 
@@ -46,7 +46,8 @@ Sobre esse catalogo o agente sabe:
   com 484 paginas: revisao periodica, fluidos, pneus, garantia e operacao
 
 A simulacao usa o preco do **estado** de quem pergunta. A mesma viagem no mesmo
-carro custa diferente saindo de Sao Paulo e do Amapa, e o agente reflete isso.
+carro nao custa o mesmo saindo de Sao Paulo e saindo do Amapa, e o agente
+reflete isso.
 
 ## Exemplos de perguntas
 
@@ -70,28 +71,28 @@ Resposta real da ferramenta de simulacao, para uma viagem de 300 km saindo de
 Minas Gerais no Jeep Compass:
 
 ```
-Simulacao para Jeep Compass Serie S T270 1.3 Turbo 2024
-  Distancia total: 300 km
-  Divisao do percurso: 40% cidade, 60% estrada
+Simulação para Jeep Compass Serie S T270 1.3 Turbo 2024
+  Distância total: 300 km
+  Divisão do percurso: 40% cidade, 60% estrada
 
-  Gasolina a R$ 6.32/litro:
-    Consumo medio na viagem: 11.21 km/l
-    Combustivel necessario: 26.76 litros
-    Custo total: R$ 169.11
-    Custo por km: R$ 0.564
-    Tanques cheios: 0.49
+  Gasolina a R$ 6,32 por litro:
+    Consumo médio na viagem: 11,21 km/l
+    Combustível necessário: 26,76 litros
+    Custo total: R$ 169,11
+    Custo por quilômetro: R$ 0,56
+    Tanques necessários: 0,49
 
-  Etanol a R$ 3.99/litro:
-    Consumo medio na viagem: 8.03 km/l
-    Combustivel necessario: 37.37 litros
-    Custo total: R$ 149.10
-    Custo por km: R$ 0.497
-    Tanques cheios: 0.68
+  Etanol a R$ 3,99 por litro:
+    Consumo médio na viagem: 8,03 km/l
+    Combustível necessário: 37,37 litros
+    Custo total: R$ 149,10
+    Custo por quilômetro: R$ 0,50
+    Tanques necessários: 0,68
 
-  Nos precos informados, etanol sai R$ 20.01 mais barato nesta viagem.
-  Precos de combustivel: mediana de MG, levantamento da ANP de 2026-07-01 a 2026-07-31.
-  Consumo conforme o PBE Veicular do Inmetro, versao JEEP COMPASS SERIE S T 1.3T-16V.
-  Valores de referencia em condicoes de ensaio.
+  Com os preços informados, o etanol custa R$ 20,01 a menos nesta viagem.
+  Preços de combustível: mediana de MG (levantamento da ANP de 01/07/2026 a 31/07/2026).
+  Consumo conforme o PBE Veicular do Inmetro, versão Utilitário Esportivo Grande JEEP COMPASS SERIE S T 1.3T-16V.
+  Valores de referência medidos em condições de ensaio. O consumo real varia com carga, ar-condicionado, relevo e estilo de condução.
 ```
 
 ## O que ele nao faz
@@ -103,6 +104,8 @@ inventar, nestes casos:
 | --- | --- |
 | "Quanto gasta o Fiat Uno?" | Fora do catalogo. Ele diz isso e sugere modelos parecidos |
 | "Quanto custa carregar o BYD Dolphin numa viagem?" | O catalogo tem km/l equivalente e autonomia, mas nao kWh, entao o custo em reais nao e calculavel |
+| "Qual a pressao dos pneus do Honda City?" | So o Corolla tem manual indexado; ele diz isso em vez de estimar |
+| "Quanto gasto com o Corolla?" | O termo casa com Corolla e Corolla Cross; ele pede para desambiguar antes de simular |
 | "Vale a pena financiar em 48 vezes?" | Nao da conselho financeiro nem simula financiamento |
 | "Quanto vai valer esse carro em 2030?" | Nao projeta valor de revenda |
 | "Qual o melhor carro?" | Sem criterio nao ha resposta objetiva; ele pede o criterio |
@@ -116,16 +119,17 @@ O agente e **hibrido**: cada tipo de pergunta vai para o mecanismo certo.
                                 |
                         [ agente / tool calling ]
                                 |
-        +-----------------------+-----------------------+
-        |                       |                       |
-  buscar_veiculo          simular_viagem        buscar_documentos
-  listar_veiculos       consultar_precos         (RAG semantico)
-  comparar_veiculos      ranking_precos                  |
-        |                        |                       |
-   pandas sobre CSV      calculo em Python         FAISS + embeddings
-        |                        |                       |
-  precos FIPE +           precos da ANP           PDFs do Inmetro
-  ficha + consumo         por estado              + manual do Corolla
+        +-----------------------------+-----------------------------+
+        |                             |                             |
+  resumo_catalogo               simular_viagem          buscar_documentos_oficiais
+  buscar_veiculo         consultar_precos_combustivel      (RAG semantico)
+  listar_veiculos        ranking_precos_por_estado                |
+  comparar_veiculos                  |                            |
+        |                            |                            |
+   pandas sobre CSV          calculo em Python          FAISS + embeddings
+        |                            |                            |
+  precos FIPE +               precos da ANP              PDFs do Inmetro
+  ficha + consumo             por estado                 + manual do Corolla
 ```
 
 A razao para esse desenho: **RAG nao faz conta nem comparacao numerica**. Busca
@@ -182,7 +186,7 @@ src/agente_carros/
     consultar_precos.py    Precos de combustivel e ranking por estado
     buscar_documentos.py   Busca semantica
   agente.py            Prompt, esquemas das ferramentas e executor
-  fabrica.py           Wiring: liga implementacoes concretas as portas
+  fabrica.py           Ligacao: une as implementacoes concretas as portas
 app/
   streamlit_app.py     Interface web
   cli.py               Interface de terminal, mesmo agente
@@ -230,7 +234,7 @@ mudanca inteira.
 
 ## Como executar
 
-Pre-requisitos: Python 3.10 ou superior e uma chave de API gratuita de um dos
+Pré-requisitos: Python 3.10 ou superior e uma chave de API gratuita de um dos
 provedores suportados — [Google AI Studio](https://aistudio.google.com/apikey)
 ou [build.nvidia.com](https://build.nvidia.com). Nenhum dos dois pede cartao.
 
@@ -249,7 +253,7 @@ python scripts/configurar_chave.py /caminho/da/chave
 ```
 
 O script deduz o provedor pelo prefixo da chave, grava o `.env` com permissao
-restrita e nunca imprime o valor. Se preferir a mao, copie `.env.example` para
+restrita e nunca imprime o valor. Se preferir fazer a mao, copie `.env.example` para
 `.env` e preencha `GOOGLE_API_KEY` ou `NVIDIA_API_KEY`.
 
 Os dados de preco e consumo ja vem no repositorio. Falta baixar os PDFs e
@@ -281,7 +285,7 @@ make tudo
 make rodar
 ```
 
-Ou use pelo terminal:
+Ou pergunte direto pelo terminal:
 
 ```bash
 python app/cli.py "quanto gasto de Sao Paulo ao Rio com o Corolla?"
@@ -337,7 +341,7 @@ Render, Vercel ou em um servidor proprio trocando apenas a camada de `app/`.
 
 Para acrescentar manuais do proprietario ao indice, veja
 [`docs/MANUAIS.md`](docs/MANUAIS.md). Os sites das montadoras bloqueiam
-download automatizado, entao esses PDFs entram a mao.
+download automatizado, entao esses PDFs entram à mão.
 
 Detalhes de procedencia, criterios de selecao e divergencias entre as fontes
 estao em [`docs/FONTES.md`](docs/FONTES.md).
@@ -352,7 +356,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-53 testes cobrindo o calculo da viagem, as consultas ao catalogo, a resolucao
+72 testes cobrindo o calculo da viagem, as consultas ao catalogo, a resolucao
 de precos por estado e a selecao de provedor e credencial — as partes onde um erro numerico viraria uma resposta
 errada com aparencia de certeza.
 
