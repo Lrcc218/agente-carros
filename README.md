@@ -41,9 +41,9 @@ Sobre esse catalogo o agente sabe:
   quantos tanques cheios sao necessarios
 - **Precos de combustivel** — gasolina, etanol e diesel praticados em cada
   estado, apurados pela ANP, e onde o etanol compensa
-- **Documentos oficiais** — metodologia de medicao de consumo e significado das
-  faixas de eficiencia energetica, respondidos por busca semantica nos PDFs do
-  Inmetro
+- **Documentos oficiais** — metodologia de medicao de consumo e faixas de
+  eficiencia energetica, do Inmetro, e o **manual do proprietario do Corolla**,
+  com 484 paginas: revisao periodica, fluidos, pneus, garantia e operacao
 
 A simulacao usa o preco do **estado** de quem pergunta. A mesma viagem no mesmo
 carro custa diferente saindo de Sao Paulo e do Amapa, e o agente reflete isso.
@@ -61,6 +61,7 @@ Perguntas que o agente responde:
 | "Qual o SUV mais economico na estrada?" | Filtro por categoria com ordenacao por consumo |
 | "Qual a potencia e o torque do Compass?" | Ficha tecnica |
 | "O que significa a classificacao A na etiqueta do Inmetro?" | Busca semantica nos PDFs oficiais |
+| "De quantas em quantas revisoes troca o fluido de arrefecimento do Corolla?" | Busca no manual do proprietario, 484 paginas |
 | "Quanto custa o Porsche 911 na FIPE?" | Consulta de preco com mes de referencia |
 | "Onde o etanol e mais barato no Brasil?" | Ranking por estado com dados da ANP |
 | "Compensa abastecer com etanol aqui em Minas?" | Precos da ANP em MG e razao etanol/gasolina |
@@ -125,7 +126,7 @@ O agente e **hibrido**: cada tipo de pergunta vai para o mecanismo certo.
    pandas sobre CSV      calculo em Python         FAISS + embeddings
         |                        |                       |
   precos FIPE +           precos da ANP           PDFs do Inmetro
-  ficha + consumo         por estado              + manuais opcionais
+  ficha + consumo         por estado              + manual do Corolla
 ```
 
 A razao para esse desenho: **RAG nao faz conta nem comparacao numerica**. Busca
@@ -332,7 +333,7 @@ Render, Vercel ou em um servidor proprio trocando apenas a camada de `app/`.
 | Consumo e autonomia | PBE Veicular 2026 e 2025, Inmetro | Extraido do PDF oficial |
 | Preco de combustivel | Levantamento de precos da ANP, CSV aberto | Coletado automaticamente |
 | Metodologia de consumo | Inmetro | PDF oficial indexado |
-| Manuais de montadora | Sites oficiais das marcas | Inclusao manual, opcional |
+| Manuais de montadora | Sites oficiais das marcas | Corolla indexado; 24 guardados |
 | Ficha tecnica | Curadoria manual | Em conferencia |
 
 Para acrescentar manuais do proprietario ao indice, veja
@@ -379,9 +380,11 @@ fixando esse comportamento.
 - **Preco de combustivel por estado, nao por cidade.** A ANP publica posto a
   posto, mas o resumo agrega por unidade da federacao. Dentro de um estado o
   preco varia bastante — a consulta informa a faixa entre o menor e o maior.
-- **Manuais de montadora sao opcionais e desiguais.** Se voce indexar poucos
-  manuais, o agente responde em profundidade sobre esses modelos e nada sobre
-  os demais. Veja [`docs/MANUAIS.md`](docs/MANUAIS.md).
+- **So o Corolla tem manual indexado.** Perguntas sobre revisao, fluidos ou
+  garantia funcionam para ele e nao para os outros 27 modelos, e o agente diz
+  isso. Ha mais 24 documentos guardados no projeto, aguardando indexacao: a
+  camada gratuita limita as requisicoes de embedding por dia, entao o acervo
+  entra aos poucos. Veja [`docs/MANUAIS.md`](docs/MANUAIS.md).
 - **Consumo de ensaio.** Os numeros do Inmetro vem de condicoes controladas. O
   consumo real varia com carga, ar-condicionado, relevo e conducao. O agente
   informa isso em toda simulacao.

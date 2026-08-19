@@ -123,8 +123,17 @@ a construcao do projeto:
 - **Toyota** — a pagina abre, mas o servidor que hospeda os PDFs devolve 403
 - **Honda** — a propria pagina de manuais devolve 403
 
-Como a cobertura seria desigual entre as marcas, nenhum manual entra por
-padrao. Quem quiser inclui os seus seguindo [`MANUAIS.md`](MANUAIS.md).
+Como a cobertura seria desigual entre as marcas, o acervo entra aos poucos.
+Hoje esta indexado apenas o **manual do proprietario do Corolla**, com 484
+paginas, escolhido para validar a busca semantica sobre um documento longo de
+verdade. Os outros 24 ficam em `_pendentes/`, guardados e fora do indice.
+
+O que limita nao e o tamanho do indice, e sim a cota gratuita de embeddings.
+As 484 paginas do Corolla somadas aos documentos do Inmetro dao 667 trechos,
+que couberam em duas janelas diarias de cota; os 25 manuais juntos passariam
+de 20 mil trechos.
+
+Quem quiser incluir outros segue [`MANUAIS.md`](MANUAIS.md).
 
 ## 5. Ficha tecnica
 
@@ -167,7 +176,7 @@ usando o mesmo `id`, e rodar novamente a coleta de precos.
 
 | Item | Valor |
 | --- | --- |
-| Padrao | Google Gemini (`gemini-2.0-flash` e `models/text-embedding-004`) |
+| Padrao | Google Gemini (`gemini-3.5-flash-lite` e `models/gemini-embedding-2`) |
 | Alternativa | NVIDIA NIM (`meta/llama-3.3-70b-instruct` e `nvidia/nv-embedqa-e5-v5`) |
 | Selecao | Variavel `PROVEDOR_LLM` no `.env` |
 
