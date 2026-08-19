@@ -6,6 +6,7 @@ from agente_carros.ferramentas.consultar_catalogo import (
     buscar_veiculo,
     comparar_veiculos,
     listar_veiculos,
+    resumo_catalogo,
 )
 
 
@@ -86,3 +87,46 @@ def test_comparacao_traz_os_dois_veiculos(catalogo):
 
 def test_comparacao_exige_dois_veiculos(catalogo):
     assert "pelo menos dois" in comparar_veiculos(catalogo, ["onix"])
+
+
+def test_listagem_avisa_quando_trunca(catalogo):
+    """Sem esse aviso o agente descreve o catalogo inteiro a partir de 10 itens."""
+    texto = listar_veiculos(catalogo)
+
+    assert "28" in texto
+    assert "incompleta" in texto.lower()
+    assert "resumo_catalogo" in texto
+
+
+def test_listagem_curta_nao_avisa_truncagem(catalogo):
+    texto = listar_veiculos(catalogo, combustivel="eletrico")
+
+    assert "incompleta" not in texto.lower()
+
+
+def test_resumo_traz_todas_as_marcas(catalogo):
+    texto = resumo_catalogo(catalogo)
+
+    for marca in ("BMW", "Mercedes-Benz", "Porsche", "Ferrari", "BYD", "Fiat"):
+        assert marca in texto, f"{marca} ausente do resumo"
+
+
+def test_resumo_conta_certo(catalogo):
+    texto = resumo_catalogo(catalogo)
+
+    assert "28 veiculos" in texto
+    assert "14 marcas" in texto
+
+
+def test_resumo_traz_a_faixa_de_preco(catalogo):
+    texto = resumo_catalogo(catalogo)
+
+    assert "Faixa de preco" in texto
+    assert "3.309.948" in texto  # a Ferrari, o teto do catalogo
+
+
+def test_marcas_premium_estao_no_catalogo(catalogo):
+    """Regressao: o agente ja afirmou que o catalogo nao tinha essas marcas."""
+    marcas = {v.marca for v in catalogo.listar()}
+
+    assert {"BMW", "Mercedes-Benz", "Porsche", "Ferrari"} <= marcas

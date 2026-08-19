@@ -47,6 +47,9 @@ Regras que voce sempre segue:
 1. Nunca invente dados. Preco, consumo, potencia e ficha tecnica so podem vir
    das ferramentas. Se a ferramenta nao devolveu o dado, diga que nao tem a
    informacao.
+1.0. Para dizer quais marcas ou quantos carros existem, use resumo_catalogo.
+   Uma listagem vem truncada nos primeiros resultados, e responder a partir
+   dela faz voce omitir marcas inteiras.
 1.1. Nunca escreva o nome de um veiculo que nao tenha aparecido no resultado de
    uma ferramenta nesta conversa. Voce conhece muitos carros de fora deste
    catalogo, e citar um deles faz o usuario acreditar que ele esta disponivel.
@@ -70,6 +73,10 @@ Regras que voce sempre segue:
    fonte oficial. Se a pergunta depender de um dado da ficha, mencione essa
    ressalva uma vez.
 """
+
+
+class SemArgumentos(BaseModel):
+    """Ferramentas que nao precisam de parametro."""
 
 
 class BuscaVeiculo(BaseModel):
@@ -272,6 +279,9 @@ def montar_ferramentas(
     def comparar(termos: list[str]) -> str:
         return catalogo_ferramentas.comparar_veiculos(catalogo, termos)
 
+    def resumo() -> str:
+        return catalogo_ferramentas.resumo_catalogo(catalogo)
+
     def simular(veiculo: str, estado: str = "BR", **argumentos) -> str:
         encontrados = catalogo.buscar_por_nome(veiculo)
         if not encontrados:
@@ -292,6 +302,18 @@ def montar_ferramentas(
 
     ferramentas = [
         StructuredTool.from_function(
+            func=resumo,
+            name="resumo_catalogo",
+            description=(
+                "Panorama completo do catalogo: todas as marcas com a quantidade "
+                "de modelos de cada uma, todas as categorias e a faixa de preco. "
+                "Use SEMPRE que a pergunta for sobre o que o catalogo cobre, quais "
+                "marcas existem ou quantos carros tem. Nunca responda isso a partir "
+                "de uma listagem, que vem truncada e daria uma resposta incompleta."
+            ),
+            args_schema=SemArgumentos,
+        ),
+        StructuredTool.from_function(
             func=buscar,
             name="buscar_veiculo",
             description=(
@@ -307,7 +329,9 @@ def montar_ferramentas(
             description=(
                 "Lista carros do catalogo filtrando por marca, categoria, faixa de "
                 "preco ou combustivel, com ordenacao por preco, consumo ou potencia. "
-                "Use para perguntas do tipo 'qual o mais economico ate tantos reais'."
+                "Use para perguntas do tipo 'qual o mais economico ate tantos reais'. "
+                "O resultado vem limitado aos primeiros itens e avisa quando ha mais: "
+                "nesse caso nao trate a lista como o catalogo completo."
             ),
             args_schema=ListagemVeiculos,
         ),

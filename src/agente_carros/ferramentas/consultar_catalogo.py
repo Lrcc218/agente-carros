@@ -87,7 +87,14 @@ def buscar_veiculo(catalogo: RepositorioCatalogo, termo: str) -> str:
             f"Nenhum veiculo do catalogo corresponde a '{termo}'. "
             f"O catalogo cobre estas marcas: {', '.join(disponiveis)}."
         )
-    return "\n\n".join(formatar_ficha(veiculo) for veiculo in encontrados[:LIMITE_RESULTADOS])
+    mostrados = encontrados[:LIMITE_RESULTADOS]
+    fichas = "\n\n".join(formatar_ficha(veiculo) for veiculo in mostrados)
+    if len(encontrados) > len(mostrados):
+        return (
+            f"{len(encontrados)} veiculos correspondem a '{termo}'. "
+            f"Mostrando os {len(mostrados)} primeiros.\n\n{fichas}"
+        )
+    return fichas
 
 
 def listar_veiculos(
@@ -118,8 +125,23 @@ def listar_veiculos(
     }
     encontrados = sorted(encontrados, key=chaves.get(ordenar_por, chaves["preco"]))
 
-    cabecalho = f"{len(encontrados)} veiculo(s), ordenados por {ordenar_por}:"
-    corpo = "\n".join(formatar_resumo(v) for v in encontrados[:LIMITE_RESULTADOS])
+    total = len(encontrados)
+    mostrados = encontrados[:LIMITE_RESULTADOS]
+    corpo = "\n".join(formatar_resumo(v) for v in mostrados)
+
+    if total > len(mostrados):
+        # Sem este aviso o modelo trata a lista parcial como se fosse o
+        # catalogo inteiro, e conclui, por exemplo, que so existem as marcas
+        # dos carros mais baratos.
+        cabecalho = (
+            f"{total} veiculo(s) atendem aos criterios. "
+            f"Mostrando os {len(mostrados)} primeiros, ordenados por {ordenar_por}. "
+            f"ATENCAO: esta lista esta incompleta; nao conclua nada sobre o "
+            f"catalogo inteiro a partir dela. Para o panorama completo use "
+            f"resumo_catalogo, ou refine os filtros."
+        )
+    else:
+        cabecalho = f"{total} veiculo(s), ordenados por {ordenar_por}:"
     return f"{cabecalho}\n{corpo}"
 
 
@@ -136,3 +158,37 @@ def comparar_veiculos(catalogo: RepositorioCatalogo, termos: list[str]) -> str:
         else:
             blocos.append(formatar_ficha(encontrados[0]))
     return "\n\n".join(blocos)
+
+
+def resumo_catalogo(catalogo: RepositorioCatalogo) -> str:
+    """Panorama completo do catalogo: marcas, categorias e faixa de preco.
+
+    Existe para que o agente possa responder "o que voce tem?" sem depender
+    de uma listagem truncada, que o levaria a descrever apenas parte do
+    acervo como se fosse o todo.
+    """
+    veiculos = catalogo.listar()
+    if not veiculos:
+        return "O catalogo esta vazio."
+
+    por_marca: dict[str, int] = {}
+    por_categoria: dict[str, int] = {}
+    for veiculo in veiculos:
+        por_marca[veiculo.marca] = por_marca.get(veiculo.marca, 0) + 1
+        por_categoria[veiculo.categoria] = por_categoria.get(veiculo.categoria, 0) + 1
+
+    precos = [v.preco_fipe for v in veiculos if v.preco_fipe is not None]
+    linhas = [
+        f"O catalogo tem {len(veiculos)} veiculos de {len(por_marca)} marcas, todos do ano 2024.",
+        "",
+        "Marcas, com a quantidade de modelos de cada uma:",
+    ]
+    linhas += [f"  {marca}: {qtd}" for marca, qtd in sorted(por_marca.items())]
+    linhas += ["", "Categorias:"]
+    linhas += [f"  {cat}: {qtd}" for cat, qtd in sorted(por_categoria.items())]
+    if precos:
+        linhas += [
+            "",
+            f"Faixa de preco: de {_reais(min(precos))} a {_reais(max(precos))}.",
+        ]
+    return "\n".join(linhas)
