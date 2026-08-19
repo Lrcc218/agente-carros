@@ -1,12 +1,13 @@
 {
-  "gerado_em": "2026-08-18",
-  "modelo_embedding": "models/gemini-embedding-001",
+  "gerado_em": "2026-08-19",
+  "modelo_embedding": "models/gemini-embedding-2",
   "documentos": [
+    "toyota_corolla_manual_proprietario.pdf",
     "pbev_2025_tabela_consumo.pdf",
     "pbev_2026_tabela_consumo.pdf",
     "pbev_metodologia_consumo.pdf"
   ],
-  "trechos": 250,
-  "tamanho_trecho": 1200,
-  "sobreposicao": 150
+  "trechos": 667,
+  "tamanho_trecho": 2400,
+  "sobreposicao": 200
 }

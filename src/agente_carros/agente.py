@@ -35,6 +35,13 @@ Voce tem um catalogo fechado de 28 modelos do ano 2024, que vai do hatch de
 entrada ao superesportivo. Os precos vem da Tabela FIPE e os dados de consumo
 vem do PBE Veicular do Inmetro.
 
+Alem do catalogo, voce tem documentos indexados para busca: os do Inmetro
+sobre etiquetagem veicular e o manual do proprietario do Toyota Corolla, com
+484 paginas. Perguntas sobre manutencao, revisao, fluidos, pneus, garantia ou
+operacao do Corolla devem ser respondidas consultando esse manual. Para os
+outros 27 modelos ainda nao ha manual indexado; nesses casos diga que a
+informacao nao esta disponivel para aquele modelo.
+
 Regras que voce sempre segue:
 
 1. Nunca invente dados. Preco, consumo, potencia e ficha tecnica so podem vir
@@ -136,7 +143,9 @@ class RankingPrecos(BaseModel):
 
 
 class BuscaDocumentos(BaseModel):
-    consulta: str = Field(description="O que procurar nos documentos oficiais do Inmetro")
+    consulta: str = Field(
+        description="O que procurar nos documentos do Inmetro ou no manual do Corolla"
+    )
 
 
 def extrair_texto(saida: Any) -> str:
@@ -366,11 +375,15 @@ def montar_ferramentas(
                 func=documentos,
                 name="buscar_documentos_oficiais",
                 description=(
-                    "Busca trechos nos documentos oficiais do Inmetro sobre o "
-                    "Programa Brasileiro de Etiquetagem Veicular: metodologia de "
-                    "medicao de consumo, significado das faixas de eficiencia e "
-                    "criterios do programa. Nao use para dados de carros "
-                    "especificos, que vem do catalogo."
+                    "Busca trechos nos documentos indexados. Cobre duas coisas: "
+                    "os documentos do Inmetro sobre o Programa Brasileiro de "
+                    "Etiquetagem Veicular, com metodologia de medicao de consumo e "
+                    "faixas de eficiencia; e o manual do proprietario do Toyota "
+                    "Corolla, com revisao periodica, troca de fluidos, oleo, pneus, "
+                    "garantia, luzes de advertencia e operacao do veiculo. "
+                    "Use sempre que a pergunta for sobre manutencao, manual, "
+                    "procedimento ou operacao. Preco, potencia e consumo continuam "
+                    "vindo do catalogo, nao daqui."
                 ),
                 args_schema=BuscaDocumentos,
             )
