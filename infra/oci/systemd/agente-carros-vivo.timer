@@ -1,0 +1,11 @@
+[Unit]
+Description=Dispara a marcacao de atividade a cada 30 minutos
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=30min
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

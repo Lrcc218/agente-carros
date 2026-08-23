@@ -1,0 +1,58 @@
+[Unit]
+Description=Consultor de carros - agente de IA (Streamlit)
+Documentation=https://github.com/Lrcc218/agente-carros
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=agente
+Group=agente
+WorkingDirectory=/opt/agente-carros
+
+# A chave de API mora aqui, fora do repositorio e fora do systemd.
+# Arquivo 0640, root:agente. Se faltar, o servico nao sobe.
+EnvironmentFile=/etc/agente-carros/ambiente
+Environment=HOME=/opt/agente-carros
+Environment=PYTHONUNBUFFERED=1
+
+# Cria /var/log/agente-carros com o dono certo, sem precisar de mkdir no
+# provisionamento. E onde o registro de execucao em JSON Lines e gravado,
+# fora do diretorio da aplicacao para sobreviver a um redeploy.
+LogsDirectory=agente-carros
+LogsDirectoryMode=0750
+
+# Escuta so no loopback: quem expoe para a internet e o nginx.
+# fileWatcherType=none porque em producao nada recarrega a quente, e o
+# inotify custa CPU num shape de 1 OCPU.
+ExecStart=/opt/agente-carros/.venv/bin/streamlit run app/streamlit_app.py \
+    --server.address=127.0.0.1 \
+    --server.port=8501 \
+    --server.headless=true \
+    --server.fileWatcherType=none \
+    --browser.gatherUsageStats=false
+
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=20s
+
+# Contencao. O app assenta em ~1 GB; o teto evita que um pico de indexacao
+# acidental leve a VM inteira junto.
+MemoryMax=3G
+
+# Endurecimento. ProtectSystem=full deixa /usr e /etc somente leitura e
+# mantem /opt gravavel, que e onde o venv e o cache do Streamlit vivem.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=Marca atividade para a instancia nao ser reivindicada por ociosidade
+Documentation=file:///opt/agente-carros/docs/DEPLOY.md
+
+[Service]
+Type=oneshot
+User=agente
+Group=agente
+
+# A OCI reivindica instancias Always Free ociosas por 7 dias (CPU, rede e
+# memoria abaixo do limiar). Um app de portfolio sem visitas cai exatamente
+# nesse perfil e some sem aviso.
+#
+# Isto e um paliativo: gera um pouco de CPU e uma requisicao de rede de
+# saida. A solucao real e migrar a conta para Pay As You Go, o que encerra a
+# reivindicacao e mantem o Always Free gratuito. Veja docs/DEPLOY.md.
+ExecStart=/usr/bin/timeout 60 /bin/bash -c 'end=$$((SECONDS+20)); while [ $$SECONDS -lt $$end ]; do :; done; curl -fsS -m 10 -o /dev/null http://127.0.0.1/_stcore/health || true'

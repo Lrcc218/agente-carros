@@ -1,0 +1,39 @@
+#cloud-config
+#
+# Preparacao automatica no primeiro boot da instancia.
+#
+# Entregue este arquivo no campo "Cloud-init script" ao criar a instancia no
+# console da OCI, ou via --user-data-file no criar-instancia.sh. Quando a VM
+# terminar de subir, o app ja esta instalado, o nginx no ar e o servico
+# habilitado — faltando apenas a chave de API, que nao entra aqui de proposito:
+# user_data fica legivel no console e nos metadados da instancia.
+#
+# Acompanhe pelo console serial ou por SSH:
+#   sudo tail -f /var/log/cloud-init-output.log
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - git
+  - curl
+
+write_files:
+  - path: /etc/agente-carros/LEIA-ME
+    permissions: '0644'
+    content: |
+      A aplicacao esta instalada em /opt/agente-carros e ja habilitada no
+      systemd, mas nao sobe sem a chave de API.
+
+        sudo nano /etc/agente-carros/ambiente     # preencha GOOGLE_API_KEY
+        sudo systemctl start agente-carros
+        curl -sf localhost/_stcore/health && echo ok
+
+      Runbook completo: /opt/agente-carros/docs/DEPLOY.md
+
+runcmd:
+  - [ git, clone, --depth, '1', 'https://github.com/Lrcc218/agente-carros.git', /tmp/agente-carros ]
+  - [ bash, /tmp/agente-carros/infra/oci/provisionar.sh ]
+  - [ rm, -rf, /tmp/agente-carros ]
+
+final_message: "Instancia preparada em $UPTIME s. Falta a chave: /etc/agente-carros/ambiente"

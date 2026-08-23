@@ -1,0 +1,16 @@
+# Rotacao do registro de execucao do agente.
+#
+# O registro ja e um arquivo por dia; a rotacao existe para o acervo nao
+# crescer sem limite num disco de 50 GB. Trinta dias e o suficiente para
+# investigar uma resposta ruim e medir tendencia de uso.
+/var/log/agente-carros/*.jsonl {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su agente agente
+    create 0640 agente agente
+}
