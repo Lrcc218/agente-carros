@@ -26,6 +26,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "src"))
 
+from agente_carros import documentos  # noqa: E402
 from agente_carros.config import carregar_configuracao  # noqa: E402
 
 # Trechos maiores reduzem o numero de requisicoes de embedding, o que
@@ -182,9 +183,42 @@ def indexar_em_lotes(trechos: list, embeddings, FAISS, parcial: Path, modelo: st
     return indice
 
 
-def indexar(pasta_documentos: Path, destino: Path) -> None:
+def reunir_arquivos(pastas: list[Path]) -> list[tuple[Path, Path]]:
+    """Devolve (arquivo, pasta_de_origem) de todas as pastas do acervo.
+
+    Pastas iniciadas por sublinhado ficam de fora de proposito: guardam o
+    que foi baixado mas nao deve entrar no indice, como documentos de
+    modelos fora do catalogo ou material pendente de indexacao.
+
+    O MANIFESTO tambem fica de fora: ele descreve o acervo, nao faz parte
+    dele. Indexa-lo faria o agente citar o indice como se fosse a fonte.
+    """
+    encontrados: list[tuple[Path, Path]] = []
+    for pasta in pastas:
+        if not pasta.exists():
+            continue
+        for arquivo in sorted(pasta.rglob("*")):
+            if not arquivo.is_file() or not documentos.eh_suportado(arquivo):
+                continue
+            if arquivo.name.upper().startswith("MANIFESTO"):
+                continue
+            if any(parte.startswith("_") for parte in arquivo.relative_to(pasta).parts):
+                continue
+            encontrados.append((arquivo, pasta))
+    return encontrados
+
+
+def classificar(arquivo: Path, origem: Path, corporativos: Path) -> str:
+    """Tipo do documento, usado como filtro na recuperacao."""
+    if origem == corporativos:
+        return "documento_interno"
+    return "manual" if arquivo.parent.name == "manuais" else "documento_oficial"
+
+
+def indexar(pastas: list[Path], destino: Path) -> None:
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.vectorstores import FAISS
+    from langchain_core.documents import Document
     from langchain_text_splitters import RecursiveCharacterTextSplitter
 
     from agente_carros.fabrica import criar_provedor
@@ -194,36 +228,50 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
     # iniciadas por sublinhado ficam de fora de proposito: guardam o que foi
     # baixado mas nao deve entrar no indice, como documentos de modelos que
     # nao estao no catalogo ou material ainda pendente de indexacao.
-    pdfs = sorted(
-        f
-        for f in pasta_documentos.rglob("*.pdf")
-        if not any(parte.startswith("_") for parte in f.relative_to(pasta_documentos).parts)
-    )
-    if not pdfs:
+    encontrados = reunir_arquivos(pastas)
+    if not encontrados:
+        formatos = ", ".join(documentos.formatos_suportados())
+        locais = ", ".join(str(p) for p in pastas)
         raise SystemExit(
-            f"Nenhum PDF em {pasta_documentos}. "
+            f"Nenhum documento em {locais} (formatos aceitos: {formatos}). "
             "Rode antes: python scripts/baixar_documentos.py"
         )
+    arquivos = [arquivo for arquivo, _ in encontrados]
 
-    titulos = carregar_titulos(pasta_documentos)
+    titulos: dict[str, str] = {}
+    for pasta in pastas:
+        titulos |= carregar_titulos(pasta)
     titulos |= carregar_titulos_de_manuais(config.caminhos.dados / "manuais.csv")
 
     paginas = []
-    for pdf in pdfs:
+    for arquivo, origem in encontrados:
+        eh_pdf = arquivo.suffix.lower() == ".pdf"
         try:
-            carregadas = PyPDFLoader(str(pdf)).load()
-        except Exception as erro:  # noqa: BLE001 - um PDF ruim nao pode parar a indexacao
-            print(f"  IGNORADO  {pdf.name}: nao foi possivel ler ({erro})")
+            if eh_pdf:
+                carregadas = PyPDFLoader(str(arquivo)).load()
+            else:
+                texto = documentos.extrair_texto(arquivo)
+                if not texto.strip():
+                    print(f"  IGNORADO  {arquivo.name}: nenhum texto extraido")
+                    continue
+                carregadas = [Document(page_content=texto, metadata={"source": str(arquivo)})]
+        except documentos.DependenciaAusente as erro:
+            print(f"  IGNORADO  {arquivo.name}: {erro}")
+            continue
+        except Exception as erro:  # noqa: BLE001 - um arquivo ruim nao para a indexacao
+            print(f"  IGNORADO  {arquivo.name}: nao foi possivel ler ({erro})")
             continue
 
-        eh_manual = pdf.parent.name == "manuais"
+        tipo = classificar(arquivo, origem, config.caminhos.corporativos)
+        formato = documentos.FORMATOS.get(arquivo.suffix.lower(), arquivo.suffix)
         for pagina in carregadas:
-            pagina.metadata["titulo"] = titulos.get(pdf.name, nome_legivel(pdf))
-            pagina.metadata["arquivo"] = pdf.name
-            pagina.metadata["tipo"] = "manual" if eh_manual else "documento_oficial"
+            pagina.metadata["titulo"] = titulos.get(arquivo.name, nome_legivel(arquivo))
+            pagina.metadata["arquivo"] = arquivo.name
+            pagina.metadata["tipo"] = tipo
+            pagina.metadata["formato"] = formato
         paginas.extend(carregadas)
-        rotulo = "manual" if eh_manual else "oficial"
-        print(f"  lido  [{rotulo}] {pdf.name} ({len(carregadas)} paginas)")
+        unidade = "paginas" if eh_pdf else "bloco"
+        print(f"  lido  [{tipo}/{formato}] {arquivo.name} ({len(carregadas)} {unidade})")
 
     divisor = RecursiveCharacterTextSplitter(
         chunk_size=TAMANHO_TRECHO, chunk_overlap=SOBREPOSICAO
@@ -249,7 +297,13 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
             {
                 "gerado_em": date.today().isoformat(),
                 "modelo_embedding": config.modelo_embedding,
-                "documentos": [pdf.name for pdf in pdfs],
+                "documentos": [arquivo.name for arquivo in arquivos],
+                "formatos": sorted(
+                    {
+                        documentos.FORMATOS.get(a.suffix.lower(), a.suffix)
+                        for a in arquivos
+                    }
+                ),
                 "trechos": len(trechos),
                 "tamanho_trecho": TAMANHO_TRECHO,
                 "sobreposicao": SOBREPOSICAO,
@@ -268,10 +322,16 @@ def indexar(pasta_documentos: Path, destino: Path) -> None:
 def main() -> None:
     config = carregar_configuracao()
     analisador = argparse.ArgumentParser(description="Indexa os documentos oficiais")
-    analisador.add_argument("--documentos", type=Path, default=config.caminhos.documentos)
+    analisador.add_argument(
+        "--documentos",
+        type=Path,
+        nargs="*",
+        default=[config.caminhos.corporativos, config.caminhos.documentos],
+        help="Pastas do acervo. Por padrao, o acervo interno e os documentos baixados.",
+    )
     analisador.add_argument("--destino", type=Path, default=config.caminhos.indice_vetorial)
     argumentos = analisador.parse_args()
-    indexar(argumentos.documentos, argumentos.destino)
+    indexar(list(argumentos.documentos), argumentos.destino)
 
 
 if __name__ == "__main__":
