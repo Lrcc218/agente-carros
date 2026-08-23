@@ -2,3 +2,7 @@
 
 pytest==8.3.3
 ruff==0.7.2
+
+# Geracao dos PDFs do acervo e da documentacao.
+# Ferramenta de tempo de construcao: nao entra em producao.
+reportlab==5.0.1
