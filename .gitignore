@@ -26,3 +26,16 @@ dados/processados/indice_faiss_parcial/
 
 # Metadados de download do Windows
 *:Zone.Identifier
+
+# Deploy: configuracao especifica da tenancy (OCIDs, host, caminho de chave)
+infra/oci/instancia.env
+infra/oci/servidor.env
+
+# Chaves privadas, em qualquer lugar do projeto
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Registro de execucao: saida do agente, nao insumo do projeto
+registros/

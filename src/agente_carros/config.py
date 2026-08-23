@@ -61,7 +61,18 @@ class Caminhos:
 
     @property
     def documentos(self) -> Path:
+        """Documentos baixados de fontes externas. Reproduziveis por script."""
         return self.brutos / "documentos"
+
+    @property
+    def corporativos(self) -> Path:
+        """Acervo interno da empresa. Escrito a mao e versionado no repositorio."""
+        return self.dados / "documentos_corporativos"
+
+    @property
+    def registros(self) -> Path:
+        """Registro de execucao. Fora de `dados/`: e saida, nao insumo."""
+        return Path(os.getenv("DIR_REGISTROS", str(RAIZ / "registros")))
 
 
 def _chave_do_provedor(provedor: str) -> str:
@@ -86,6 +97,11 @@ class Configuracao:
     provedor_llm: str = os.getenv("PROVEDOR_LLM", "gemini").strip().lower()
     temperatura: float = float(os.getenv("TEMPERATURA", "0.1"))
     trechos_recuperados: int = int(os.getenv("TRECHOS_RECUPERADOS", "4"))
+    # Relevancia minima, de 0 a 1, para um trecho recuperado ser aproveitado.
+    # Zero desliga o corte. O padrao vem desligado de proposito: um limiar
+    # sem calibracao descarta trecho bom em silencio, que e pior do que
+    # trecho ruim visivel. Veja scripts/relatorio_execucoes.py.
+    limiar_relevancia: float = float(os.getenv("LIMIAR_RELEVANCIA", "0"))
     caminhos: Caminhos = field(default_factory=Caminhos)
 
     @property

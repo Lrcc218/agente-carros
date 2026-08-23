@@ -19,15 +19,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tutorial  # noqa: E402
 from estilo import CSS, cabecalho, rodape  # noqa: E402
 
+from agente_carros import registro  # noqa: E402
 from agente_carros.agente import responder as responder_agente  # noqa: E402
 from agente_carros.config import carregar_configuracao  # noqa: E402
 from agente_carros.fabrica import criar_agente  # noqa: E402
 
-TITULO = "Consultor de carros"
-SELO = "Agente de IA · dados oficiais"
+TITULO = "Consultor de Veículos"
+SELO = "Agente de IA · Autoluz Veículos · dados oficiais"
 SUBTITULO = (
-    "Ficha técnica, preço da Tabela FIPE, consumo do Inmetro e simulação do custo "
-    "real de uma viagem, com o preço do combustível praticado no seu estado. "
+    "Base de conhecimento interna: ficha técnica, preço da Tabela FIPE, consumo do "
+    "Inmetro, manual do proprietário e simulação do custo real de uma viagem, com o "
+    "preço do combustível praticado no estado do cliente. "
     "28 modelos, do hatch de entrada ao superesportivo."
 )
 FONTES = ["Tabela FIPE", "PBE Veicular / Inmetro", "Levantamento de preços da ANP"]
@@ -112,13 +114,54 @@ def mensagem_de_erro(erro: Exception) -> str:
 TURNOS_DE_HISTORICO = 12
 
 
-def responder(montagem, pergunta: str) -> str:
+def responder(montagem, pergunta: str, id_execucao: str) -> str:
     historico = []
     for mensagem in st.session_state.mensagens[:-1][-TURNOS_DE_HISTORICO:]:
         papel = "human" if mensagem["papel"] == "user" else "ai"
         historico.append((papel, mensagem["conteudo"]))
 
-    return responder_agente(montagem.executor, pergunta, historico)
+    return responder_agente(
+        montagem.executor,
+        pergunta,
+        historico,
+        sessao=st.session_state.sessao,
+        interface="streamlit",
+        id_execucao=id_execucao,
+    )
+
+
+def avaliar(id_execucao: str, util: bool) -> None:
+    """Grava o polegar e marca a mensagem como ja avaliada."""
+    registro.registrar_feedback(
+        diretorio=carregar_configuracao().caminhos.registros,
+        id_execucao=id_execucao,
+        util=util,
+        sessao=st.session_state.sessao,
+    )
+    st.session_state.avaliadas[id_execucao] = util
+
+
+def mostrar_avaliacao(id_execucao: str) -> None:
+    """Botoes de polegar sob uma resposta.
+
+    Feedback so vale se voltar para quem mantem o agente: cada clique vira
+    uma linha no registro, e o relatorio de execucoes mostra quais
+    perguntas saem mal respondidas.
+    """
+    ja = st.session_state.avaliadas.get(id_execucao)
+    if ja is not None:
+        st.caption("Obrigado pela avaliação." if ja else "Obrigado. Vamos revisar essa resposta.")
+        return
+
+    coluna_util, coluna_ruim, _ = st.columns([1, 1, 6])
+    coluna_util.button(
+        "👍", key=f"util_{id_execucao}", help="Resposta útil",
+        on_click=avaliar, args=(id_execucao, True),
+    )
+    coluna_ruim.button(
+        "👎", key=f"ruim_{id_execucao}", help="Resposta ruim ou incorreta",
+        on_click=avaliar, args=(id_execucao, False),
+    )
 
 
 def main() -> None:
@@ -140,6 +183,13 @@ def main() -> None:
 
     if "mensagens" not in st.session_state:
         st.session_state.mensagens = []
+    # Identifica a sessao no registro de execucao. E um id aleatorio por
+    # aba aberta: serve para ligar perguntas da mesma conversa, e nao para
+    # identificar quem perguntou.
+    if "sessao" not in st.session_state:
+        st.session_state.sessao = registro.novo_id()
+    if "avaliadas" not in st.session_state:
+        st.session_state.avaliadas = {}
 
     # O tutorial ocupa a tela inteira: no primeiro acesso ele vem antes do
     # agente, e depois so reaparece se a pessoa pedir na barra lateral.
@@ -164,6 +214,8 @@ def main() -> None:
     for mensagem in st.session_state.mensagens:
         with st.chat_message(mensagem["papel"]):
             st.markdown(mensagem["conteudo"])
+            if mensagem["papel"] == "assistant" and mensagem.get("id"):
+                mostrar_avaliacao(mensagem["id"])
 
     if not st.session_state.mensagens:
         st.markdown(rodape(FONTES), unsafe_allow_html=True)
@@ -180,15 +232,26 @@ def main() -> None:
     with st.chat_message("user"):
         st.markdown(pergunta)
 
+    id_execucao = registro.novo_id()
     with st.chat_message("assistant"):
         with st.spinner("Consultando o catálogo..."):
+            falhou = False
             try:
-                resposta = responder(montagem, pergunta)
+                resposta = responder(montagem, pergunta, id_execucao)
             except Exception as erro:  # noqa: BLE001 - falha de rede ou de cota
-                resposta = mensagem_de_erro(erro)
+                resposta, falhou = mensagem_de_erro(erro), True
         st.markdown(resposta)
+        # Nao faz sentido pedir avaliacao de uma mensagem de erro.
+        if not falhou:
+            mostrar_avaliacao(id_execucao)
 
-    st.session_state.mensagens.append({"papel": "assistant", "conteudo": resposta})
+    st.session_state.mensagens.append(
+        {
+            "papel": "assistant",
+            "conteudo": resposta,
+            "id": None if falhou else id_execucao,
+        }
+    )
 
 
 if __name__ == "__main__":

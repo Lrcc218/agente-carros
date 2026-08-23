@@ -17,6 +17,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "src"))
 
+from agente_carros import registro  # noqa: E402
 from agente_carros.agente import responder  # noqa: E402
 from agente_carros.fabrica import criar_agente  # noqa: E402
 
@@ -28,10 +29,12 @@ def main() -> None:
 
     if len(sys.argv) > 1:
         pergunta = " ".join(sys.argv[1:])
-        print(responder(montagem.executor, pergunta))
+        print(responder(montagem.executor, pergunta, interface="cli"))
         return
 
-    print("Consultor de carros. Digite sua pergunta ou 'sair' para encerrar.\n")
+    print("Consultor de Veículos. Digite sua pergunta ou 'sair' para encerrar.\n")
+    # Liga, no registro de execucao, as perguntas desta mesma conversa.
+    sessao = registro.novo_id()
     historico: list[tuple[str, str]] = []
     while True:
         try:
@@ -44,7 +47,9 @@ def main() -> None:
         if not pergunta:
             continue
 
-        resposta = responder(montagem.executor, pergunta, historico)
+        resposta = responder(
+            montagem.executor, pergunta, historico, sessao=sessao, interface="cli"
+        )
         print(f"\n{resposta}\n")
         historico += [("human", pergunta), ("ai", resposta)]
 
