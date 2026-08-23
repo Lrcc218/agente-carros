@@ -1,0 +1,23 @@
+# Normalizacao de fim de linha: o projeto e editado no Windows e roda em Linux.
+* text=auto eol=lf
+
+# Scripts de servidor precisam de LF mesmo se editados no Windows: um CRLF
+# no shebang faz o Linux recusar o arquivo com "bad interpreter".
+*.sh text eol=lf
+infra/oci/systemd/* text eol=lf
+infra/oci/nginx/*   text eol=lf
+infra/oci/logrotate/* text eol=lf
+
+# Artefatos gerados. Marcados para que o GitHub nao os conte nas estatisticas
+# de linguagem, nao os exiba no diff e nao os mostre em busca de codigo.
+dados/processados/indice_faiss/** binary linguist-generated
+dados/documentos_corporativos/*.pdf binary linguist-generated
+docs/*.pdf binary linguist-generated
+
+# Dados coletados por script: sao insumo, nao codigo escrito a mao.
+dados/processados/*.csv linguist-generated
+
+# Binarios
+*.pdf binary
+*.faiss binary
+*.pkl binary

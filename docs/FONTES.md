@@ -194,3 +194,53 @@ hora e sem cadastro adicional.
 
 O adaptador da NVIDIA permanece no projeto e volta a ser usado trocando uma
 linha no `.env`.
+
+## 8. Acervo corporativo — Autoluz Veiculos
+
+| Item | Valor |
+| --- | --- |
+| Fonte | Escrito para o projeto |
+| Pasta | `dados/documentos_corporativos/` |
+| Manifesto | `dados/documentos_corporativos/MANIFESTO.md` |
+| Estado | Versionado no repositorio |
+
+O challenge pede um agente que responda a partir dos documentos internos de uma
+empresa. Como nao existe empresa real por tras deste projeto, o acervo foi
+escrito: sete documentos de uma rede de concessionarias ficticia, a **Autoluz
+Veiculos**, cobrindo pos-venda, comercial, juridico, comunicacao e recursos
+humanos.
+
+**A separacao importa e esta declarada em todo lugar:**
+
+| O que | Procedencia |
+| --- | --- |
+| Precos, consumo, ficha tecnica, precos de combustivel | Reais, de fonte oficial (secoes 1 a 4) |
+| Manual do proprietario | Real, do site da montadora (secao 5) |
+| Politicas, beneficios, contatos, unidades da Autoluz | **Ficticios**, escritos para o projeto |
+
+Nomes de pessoas nao aparecem. E-mails, telefones e enderecos sao inventados e
+usam o dominio ficticio `autoluz.com.br`. Valores de beneficio e precos de
+servico de oficina sao plausiveis, mas nao correspondem a nenhuma empresa real.
+
+### Formato: PDF gerado de fonte em Markdown
+
+O acervo e distribuido e indexado em **PDF**, 32 paginas ao todo — formato
+uniforme, como se espera de uma base documental corporativa. As fontes ficam em
+`_fontes/`, em Markdown, e os PDFs sao gerados por `scripts/gerar_pdfs.py`.
+
+| Aspecto | Por que assim |
+| --- | --- |
+| Fonte em Markdown | Diff mostra a clausula que mudou; diff de PDF so diz que o binario mudou |
+| Distribuicao em PDF | Formato unico e conferivel, e o extrator preserva o numero da pagina |
+| Citacao com pagina | A resposta do agente aponta documento e pagina, nao so o arquivo |
+| `_fontes/` com sublinhado | O indexador ignora a pasta; indexar fonte e PDF duplicaria cada trecho |
+
+O gerador guarda a assinatura de cada fonte. `scripts/gerar_pdfs.py --conferir`
+acusa PDF desatualizado, e ha teste cobrindo isso — PDF gerado de fonte antiga
+entregaria politica revogada como se fosse vigente.
+
+O extrator continua aceitando Word, Excel, PowerPoint, HTML, CSV, JSON e texto,
+verificado por testes com arquivos gerados na hora. Um documento que chegue
+pronto nesses formatos entra no acervo sem conversao.
+
+Para acrescentar um documento, veja as instrucoes no proprio MANIFESTO.

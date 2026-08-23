@@ -8,8 +8,8 @@ O provedor e deduzido do prefixo da chave, entao nao ha como configurar o
 Gemini apontando para a NVIDIA por engano.
 
 Uso:
-    python scripts/configurar_chave.py /home/luan/geminikey
-    python scripts/configurar_chave.py /home/luan/nvidiakey --provedor nvidia
+    python scripts/configurar_chave.py ~/minha-chave.txt
+    python scripts/configurar_chave.py ~/minha-chave-nvidia.txt --provedor nvidia
 """
 
 from __future__ import annotations

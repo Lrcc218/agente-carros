@@ -1,27 +1,140 @@
-# Consultor de carros
+<h1 align="center">Consultor de Veículos</h1>
 
-Agente de IA que responde perguntas de quem esta pesquisando um carro para
-comprar: ficha tecnica, preco da Tabela FIPE e simulacao do custo de
-combustivel de uma viagem.
+<p align="center">
+  <em>Agente de IA que responde perguntas dos colaboradores de uma concessionária
+  a partir dos documentos e dados oficiais da operação.</em>
+</p>
 
-Quem pesquisa carro hoje abre uma aba para a ficha tecnica, outra para a FIPE,
-outra para o consumo e ainda faz a conta da viagem na mao. O agente junta as
-tres fontes e responde de uma vez so.
+<p align="center">
+  <img alt="Status" src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue">
+  <img alt="LangChain" src="https://img.shields.io/badge/LangChain-1.3-1c3c3c">
+  <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.61-ff4b4b">
+  <img alt="Deploy" src="https://img.shields.io/badge/deploy-Oracle%20Cloud-c74634">
+  <img alt="Testes" src="https://img.shields.io/badge/testes-124%20passando-brightgreen">
+  <img alt="Licença" src="https://img.shields.io/badge/licen%C3%A7a-MIT-green">
+</p>
 
-> **Evidencia do deploy:** _(link da aplicacao, video ou captura de tela)_
+> **Challenge Alura — ONE IA for Tech.** Agente corporativo de base de
+> conhecimento, publicado na Oracle Cloud Infrastructure.
 
-## Indice
+<!-- PENDENTE: imagem de capa. Sugestão: um print da conversa, 1280x640,
+     salvo em docs/imagens/capa.png e referenciado aqui.
+<p align="center">
+  <img src="docs/imagens/capa.png" alt="Consultor de Veículos" width="720">
+</p>
+-->
 
+## Status do projeto
+
+🚧 **Em desenvolvimento.** O agente responde, os dados estão coletados, o índice
+está construído e a infraestrutura de deploy está pronta e versionada. Falta
+publicar na OCI e registrar a evidência de execução.
+
+| Etapa | Situação |
+| --- | --- |
+| Coleta e curadoria dos dados | ✅ concluída |
+| Processamento e indexação | ✅ concluída |
+| Agente, ferramentas e recuperação | ✅ concluída |
+| Interface e registro de execução | ✅ concluída |
+| Preparação do deploy na OCI | ✅ concluída |
+| Publicação na OCI e evidência | ⏳ pendente |
+
+## Demonstração
+
+> ⚠️ **PENDENTE — depende de publicação.** Assim que a aplicação estiver no ar na
+> OCI, esta seção recebe o link e a mídia exigidos pelo challenge.
+>
+> - **Aplicação:** _(URL pública da instância na OCI)_
+> - **Vídeo:** _(gravação de uma conversa, 1 a 2 minutos)_
+> - **Capturas:** _(salvar em `docs/imagens/` e referenciar aqui)_
+>
+> Sugestão de roteiro para a gravação: uma pergunta de catálogo, uma simulação de
+> viagem, uma pergunta ao manual do proprietário e uma pergunta fora do escopo,
+> para mostrar a recusa.
+
+## O contexto
+
+O projeto simula a base de conhecimento interna da **Autoluz Veículos**, uma rede
+de concessionárias fictícia. O agente é aberto a qualquer colaborador e responde
+às perguntas que hoje obrigam a abrir quatro abas e ainda fazer conta na mão:
+
+| Área | O que o agente cobre |
+| --- | --- |
+| **Comercial** | Tabela de preços FIPE, comparação entre modelos, filtro por faixa de preço |
+| **Produto** | Ficha técnica, consumo oficial, eficiência energética |
+| **Pós-venda** | Manual do proprietário: revisão, fluidos, pneus, garantia |
+| **Atendimento** | Simulação do custo real de uma viagem, com o preço de combustível do estado do cliente |
+
+Os dados de veículos são **reais e de fonte oficial** — Tabela FIPE, PBE Veicular
+do Inmetro e levantamento de preços da ANP. Fictícios são a empresa e o seu
+acervo de políticas internas, escrito para dar contexto corporativo ao agente:
+
+| Documento | Páginas | Área |
+| --- | --- | --- |
+| Manual de Garantia e Pós-venda | 6 | Pós-venda |
+| Política Comercial e de Precificação | 5 | Comercial |
+| Política de Privacidade e Proteção de Dados | 5 | Jurídico |
+| Manual de Perguntas Frequentes | 4 | Comunicação |
+| Manual de Onboarding | 4 | Recursos Humanos |
+| Tabela de Serviços e Alçadas da Oficina | 4 | Pós-venda |
+| Diretório de Áreas Responsáveis | 4 | Comunicação |
+
+**32 páginas em PDF**, formato uniforme, como se espera de uma base documental
+corporativa. As fontes ficam em Markdown, em
+[`dados/documentos_corporativos/_fontes/`](dados/documentos_corporativos/_fontes/),
+e os PDFs são gerados por `python scripts/gerar_pdfs.py`.
+
+A separação vale a pena por três motivos: Markdown se revisa em diff, cláusula a
+cláusula, enquanto diff de PDF só diz que o binário mudou; PDF preserva o número
+da página, então a resposta do agente cita documento **e** página; e a pasta de
+fontes começa com sublinhado, ficando fora da indexação — indexar fonte e PDF
+duplicaria cada trecho.
+
+O **Diretório de Áreas** merece nota: quando o agente não encontra a resposta, ele
+não pode simplesmente parar. Esse arquivo dá a ele a área responsável, o e-mail e
+o prazo de resposta, para encaminhar em vez de improvisar.
+
+## Estrutura do repositório
+
+```
+app/      interfaces: web (Streamlit) e terminal
+src/      código do agente: domínio, adaptadores, ferramentas
+dados/    catálogo, preços, acervo corporativo e índice vetorial
+scripts/  pipeline de tempo de construção e utilitários
+infra/    implantação na Oracle Cloud: provisionamento, systemd, nginx
+docs/     documentação do projeto
+testes/   suíte de testes
+```
+
+## Documentação
+
+| Documento | O que cobre |
+| --- | --- |
+| Este README | Descrição, arquitetura, execução e exemplos |
+| [Manual do Sistema](docs/Manual_do_Sistema.pdf) — [fonte](docs/MANUAL_DO_SISTEMA.md) | **17 páginas.** Referência técnica completa: arquitetura, catálogo de componentes e ferramentas, ciclo de vida de uma pergunta, decisões de arquitetura, operação e glossário |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Runbook da publicação na OCI |
+| [docs/FONTES.md](docs/FONTES.md) | Procedência de cada dado |
+| [docs/MANUAIS.md](docs/MANUAIS.md) | Como incluir manuais de montadora |
+
+## Índice
+
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Documentação](#documentação)
 - [O que ele faz](#o-que-ele-faz)
 - [Exemplos de perguntas](#exemplos-de-perguntas)
+- [Exemplos de respostas](#exemplos-de-respostas)
 - [O que ele nao faz](#o-que-ele-nao-faz)
 - [Arquitetura](#arquitetura)
+- [Registro de execução e qualidade](#registro-de-execução-e-qualidade)
 - [Tecnologias](#tecnologias)
 - [Como executar](#como-executar)
 - [Deploy](#deploy)
 - [Fontes de dados](#fontes-de-dados)
 - [Testes](#testes)
 - [Limitacoes conhecidas](#limitacoes-conhecidas)
+- [Autor](#autor)
+- [Licença](#licença)
 
 ## O que ele faz
 
@@ -66,6 +179,12 @@ Perguntas que o agente responde:
 | "Quanto custa o Porsche 911 na FIPE?" | Consulta de preco com mes de referencia |
 | "Onde o etanol e mais barato no Brasil?" | Ranking por estado com dados da ANP |
 | "Compensa abastecer com etanol aqui em Minas?" | Precos da ANP em MG e razao etanol/gasolina |
+| "Ate quanto de desconto posso dar sozinho?" | Politica Comercial, alcadas por faixa |
+| "Cliente atrasou a revisao. Perdeu a garantia?" | Manual de Garantia, criterio de nexo causal |
+| "Quanto custa a revisao de 40 mil km?" | Tabela de Servicos da oficina |
+| "Cliente pediu para excluir os dados dele. O que faco?" | Politica de Privacidade e prazo da LGPD |
+| "Qual o valor do vale-refeicao?" | Manual de Onboarding |
+| "Com quem falo sobre um recall?" | Diretorio de Areas Responsaveis |
 
 Resposta real da ferramenta de simulacao, para uma viagem de 300 km saindo de
 Minas Gerais no Jeep Compass:
@@ -95,6 +214,59 @@ Simulação para Jeep Compass Serie S T270 1.3 Turbo 2024
   Valores de referência medidos em condições de ensaio. O consumo real varia com carga, ar-condicionado, relevo e estilo de condução.
 ```
 
+## Exemplos de respostas
+
+As saídas abaixo são **reais e reproduzíveis**: vêm das ferramentas, que são
+determinísticas e não dependem do modelo de linguagem. Rodando o projeto com os
+mesmos dados, você obtém exatamente isto.
+
+Comparação entre dois modelos — `comparar_veiculos(["onix", "hb20"])`:
+
+```
+Chevrolet Onix LT 1.0 Turbo 2024
+  Categoria: hatch_popular
+  Motor: 1.0 turbo
+  Potência: 116 cv | Torque: 16.8 kgfm
+  Câmbio: Automatico 6 marchas | Tração: Dianteira
+  Porta-malas: 275 litros
+  Consumo: 12.1 km/l cidade, 15.3 km/l estrada; com etanol: 8.6 / 10.9 km/l
+  Classificação de eficiência (Inmetro): C
+  Preço FIPE: R$ 69.024,00
+  Referência FIPE: agosto de 2026
+
+Hyundai HB20 Sense 1.0 Flex 2024
+  Categoria: hatch_popular
+  Motor: 1.0 aspirado
+  Potência: 80 cv | Torque: 10.2 kgfm
+  Câmbio: Manual 5 marchas | Tração: Dianteira
+  Porta-malas: 300 litros
+  Consumo: 13.3 km/l cidade, 15.4 km/l estrada; com etanol: 9.9 / 10.7 km/l
+  Classificação de eficiência (Inmetro): B
+  Preço FIPE: R$ 66.644,00
+  Referência FIPE: agosto de 2026
+```
+
+SUVs compactos ordenados por consumo na estrada —
+`listar_veiculos(categoria="suv_compacto", ordenar_por="consumo_estrada")`:
+
+```
+8 veículos, ordenados por consumo na estrada:
+- Volkswagen Nivus Comfortline 200 TSI 2024 | R$ 103.810,00 | 128 cv | 12.4 / 14.8 km/l
+- Volkswagen T-Cross Sense 200 TSI 2024     | R$ 100.649,00 | 128 cv | 12.1 / 14.5 km/l
+- Nissan Kicks Sense 1.0 Turbo 2024         | R$ 105.525,00 | 125 cv | 11.7 / 14.3 km/l
+- Honda HR-V EX 1.5 Flex 2024               | R$ 136.896,00 | 126 cv | 12.5 / 13.9 km/l
+- Chevrolet Tracker LT 1.0 Turbo 2024       | R$ 100.583,00 | 116 cv | 11.5 / 13.8 km/l
+- Hyundai Creta Comfort 1.0 Turbo 2024      | R$ 101.814,00 | 120 cv | 12.0 / 12.7 km/l
+- Jeep Renegade Longitude T270 2024         | R$ 101.940,00 | 185 cv | 11.1 / 12.4 km/l
+- Renault Duster Iconic 1.6 CVT 2024        | R$  81.402,00 | 120 cv | 10.8 / 11.4 km/l
+```
+
+A simulação de viagem completa está na seção anterior.
+
+> ⏳ **Conversas completas do agente** — pergunta do colaborador, escolha da
+> ferramenta e texto final redigido pelo modelo — entram aqui junto com as
+> capturas de tela, depois da publicação. Ver [Demonstração](#demonstração).
+
 ## O que ele nao faz
 
 Recusar bem e parte do projeto. O agente responde que nao sabe, em vez de
@@ -109,6 +281,8 @@ inventar, nestes casos:
 | "Vale a pena financiar em 48 vezes?" | Nao da conselho financeiro nem simula financiamento |
 | "Quanto vai valer esse carro em 2030?" | Nao projeta valor de revenda |
 | "Qual o melhor carro?" | Sem criterio nao ha resposta objetiva; ele pede o criterio |
+| "O cliente Joao, CPF 123..., reclamou de..." | A politica de privacidade proibe tratar dado pessoal em IA; ele responde pela regra geral |
+| "Qual a politica de home office?" | Nao ha documento sobre isso; ele indica o RH em vez de inventar |
 
 ## Arquitetura
 
@@ -144,6 +318,46 @@ respostas confiantes e erradas. Entao:
 O modelo de linguagem so interpreta a pergunta, escolhe a ferramenta e redige a
 resposta. Ele nunca produz um numero por conta propria.
 
+### O caminho de um documento até a resposta
+
+```
+documento              PDF, Word, Excel, PowerPoint, Markdown, CSV, JSON, HTML
+   |
+extração               PyPDF para PDF; leitores dedicados por formato.
+   |                   Planilha vira uma frase por linha, com o cabeçalho
+   |                   repetido — tabela em colunas perde a legenda no
+   |                   primeiro corte e devolve número órfão.
+   |
+fatiamento             2400 caracteres, 200 de sobreposição
+   |
+metadados              título, arquivo, formato, tipo (manual ou oficial), página
+   |
+embeddings             gerados uma vez, em tempo de construção
+   |
+índice FAISS           versionado no repositório
+   |
+recuperação            filtro por tipo -> similaridade -> limiar de relevância
+   |
+resposta               o modelo redige citando documento e página; sem trecho
+                       acima do limiar, ele diz que não encontrou
+```
+
+Duas salvaguardas contra a resposta confiante e errada:
+
+- **Filtro por metadado antes da similaridade.** Uma pergunta sobre garantia não
+  deve trazer trecho da tabela do Inmetro só porque ele também fala de veículos.
+  O agente escolhe o `tipo` ao chamar a ferramenta; se o filtro ficar estreito
+  demais e não devolver nada, a busca é refeita no acervo inteiro.
+- **Limiar de relevância.** Busca vetorial sempre devolve alguma coisa, mesmo
+  quando não há nada pertinente — os vizinhos mais próximos de uma pergunta fora
+  do escopo continuam sendo vizinhos. O limiar descarta o que ficou abaixo da
+  régua, e sem nada acima dela a ferramenta responde que não encontrou.
+
+  O limiar vem **desligado por padrão**, de propósito: um corte sem calibração
+  descarta trecho bom em silêncio, o que é pior do que trecho ruim visível. Para
+  calibrar, rode perguntas reais e leia as relevâncias com
+  `python scripts/relatorio_execucoes.py`, depois defina `LIMIAR_RELEVANCIA`.
+
 ### Tempo de construcao e tempo de execucao
 
 Toda coleta e todo processamento pesado acontecem antes, em scripts, e o
@@ -155,7 +369,8 @@ tempo de construcao (scripts, rodam sob demanda)
   coletar_precos_anp.py     CSV aberto da ANP -> dados/processados/precos_combustivel_anp.csv
   baixar_documentos.py      Inmetro           -> dados/brutos/documentos/
   extrair_consumo_pbev.py   PDFs do Inmetro   -> dados/processados/consumo_pbev.csv
-  indexar_documentos.py     PDFs + embeddings -> dados/processados/indice_faiss/
+  gerar_pdfs.py             fontes Markdown   -> PDFs do acervo e docs/
+  indexar_documentos.py     acervo + embeddings -> dados/processados/indice_faiss/
 
 tempo de execucao (a aplicacao apenas le)
   Streamlit -> fabrica -> agente -> ferramentas -> CSVs e indice em disco
@@ -171,6 +386,8 @@ numeros deste README reproduziveis por quem clonar o projeto.
 ```
 src/agente_carros/
   config.py            Configuracao e caminhos, ponto unico de leitura do ambiente
+  registro.py          Registro de execucao e de feedback, em JSON Lines
+  documentos.py        Leitura dos formatos do acervo: Word, Excel, PPT, HTML, CSV, JSON
   dominio/
     modelos.py         Veiculo, ResultadoViagem, CustoPorCombustivel
     portas.py          Contratos: ProvedorLLM, BaseVetorial, RepositorioCatalogo
@@ -199,6 +416,12 @@ scripts/
   indexar_documentos.py   Indice vetorial
   testar_provedor.py      Testa a chave isoladamente
   diagnosticar.py         Confere o ambiente inteiro
+  relatorio_execucoes.py  Resume o registro: latencia, ferramentas, qualidade
+  gerar_pdfs.py           Gera os PDFs do acervo a partir das fontes Markdown
+infra/oci/
+  provisionar.sh          Instala tudo na instancia da OCI, de forma idempotente
+  publicar.sh             Atualiza a versao no ar, com reversao automatica
+  criar-instancia.sh      Cria a VM insistindo enquanto nao ha capacidade ARM
 ```
 
 As portas sao `Protocol` do Python: qualquer classe com os metodos certos
@@ -218,6 +441,40 @@ Gemini custou **um arquivo novo e uma linha na fabrica**. Agente, ferramentas,
 dados, testes e interface nao foram tocados. O historico de commits registra a
 mudanca inteira.
 
+## Registro de execução e qualidade
+
+Cada pergunta respondida vira uma linha de JSON num arquivo diário: pergunta,
+resposta, ferramentas acionadas, documentos citados, duração, provedor, modelo e
+sessão. Sem esse rastro não há como auditar depois por que uma resposta saiu como
+saiu, nem medir com que frequência o agente não encontra material.
+
+```
+registros/execucoes-2026-08-23.jsonl
+```
+
+O formato **JSON Lines** é proposital: cresce por acréscimo, nunca precisa ser
+reescrito inteiro e se lê com `grep` e `jq` sem infraestrutura nenhuma. O registro
+**nunca derruba a conversa** — se o disco encher ou o caminho for somente leitura,
+a falha de escrita é engolida e o agente continua respondendo. Há teste fixando
+esse comportamento.
+
+Cada resposta na interface traz **👍 / 👎**. O clique vira outra linha no mesmo
+arquivo, referenciando o id da execução. Feedback só vale se voltar para quem
+mantém o agente:
+
+```bash
+python scripts/relatorio_execucoes.py           # volume, latência, ferramentas, qualidade
+python scripts/relatorio_execucoes.py --ruins   # só o que foi avaliado com 👎
+```
+
+O relatório responde às perguntas de manutenção: qual a mediana e o p95 do tempo
+de resposta, quais ferramentas são realmente usadas, quais documentos são citados,
+e **quais perguntas não encontraram material** — que é a lista de candidatas a
+novo documento na base.
+
+Não guardamos nada que identifique quem perguntou: a sessão é um id aleatório por
+aba aberta, que serve só para ligar as perguntas de uma mesma conversa.
+
 ## Tecnologias
 
 | Tecnologia | Papel |
@@ -228,9 +485,13 @@ mudanca inteira.
 | NVIDIA NIM | Provedor alternativo, selecionavel por variavel de ambiente |
 | FAISS | Indice vetorial local |
 | pandas | Consulta aos dados estruturados |
-| pypdf | Leitura dos PDFs do Inmetro |
-| Streamlit | Interface web e deploy |
+| pypdf | Leitura dos PDFs |
+| python-docx, openpyxl, python-pptx, beautifulsoup4 | Leitura de Word, Excel, PowerPoint e HTML |
+| reportlab | Geração dos PDFs do acervo e da documentação |
+| Streamlit | Interface web |
 | pytest | Testes |
+| Oracle Cloud (OCI) | Hospedagem, camada Always Free |
+| nginx e systemd | Proxy reverso, TLS e supervisao do processo |
 
 ## Como executar
 
@@ -307,26 +568,50 @@ sempre com o mesmo `id`, e rode os scripts acima.
 
 ## Deploy
 
-O projeto foi publicado no **Streamlit Community Cloud**:
+O projeto e publicado numa instancia **Always Free da Oracle Cloud
+Infrastructure**: Ubuntu 24.04 em ARM Ampere A1, com 1 OCPU e 6 GB.
 
-1. Envie o repositorio para o GitHub como publico
-2. Acesse [share.streamlit.io](https://share.streamlit.io) e entre com a conta do GitHub
-3. Clique em **Create app** e escolha o repositorio
-4. Em **Main file path**, informe `app/streamlit_app.py`
-5. Em **Advanced settings → Secrets**, adicione a chave:
+```
+internet -> nginx :80/:443 -> streamlit :8501 (loopback) -> agente
+                              systemd, usuario proprio, sem shell
+```
 
-   ```toml
-   PROVEDOR_LLM = "gemini"
-   GOOGLE_API_KEY = "sua-chave-aqui"
-   ```
+A preparacao inteira esta versionada em [`infra/oci/`](infra/oci/), e o
+passo a passo com os tropecos conhecidos, em [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Resumido:
 
-6. Clique em **Deploy**
+```bash
+# 1. criar a VM, insistindo enquanto nao ha capacidade ARM livre
+cp infra/oci/instancia.env.exemplo infra/oci/instancia.env
+./infra/oci/criar-instancia.sh
 
-O indice vetorial precisa estar versionado no repositorio antes do deploy,
-porque a plataforma nao roda os scripts de construcao.
+# 2. a VM se provisiona sozinha pelo cloud-init; falta so o segredo
+ssh ubuntu@<ip> 'sudo nano /etc/agente-carros/ambiente'
+ssh ubuntu@<ip> 'sudo systemctl start agente-carros'
 
-Como a arquitetura nao prende o projeto ao Streamlit, o mesmo agente roda em
-Render, Vercel ou em um servidor proprio trocando apenas a camada de `app/`.
+# 3. publicar versoes novas
+./infra/oci/enviar.sh
+```
+
+Tres decisoes que valem registro:
+
+- **A chave nunca entra no repositorio nem no `user_data`.** Ela vive em
+  `/etc/agente-carros/ambiente`, com permissao 0640, fora do diretorio da
+  aplicacao. O `user_data` de uma instancia fica legivel no console e nos
+  metadados, entao segredo ali seria segredo exposto.
+- **O servidor so consome o que ja foi construido.** Nenhum script de coleta
+  e nenhuma geracao de embedding roda em producao: o `git clone` traz os CSVs
+  e o indice FAISS prontos. E a mesma separacao entre tempo de construcao e
+  tempo de execucao descrita acima, agora pagando o proprio custo.
+- **Publicacao com reversao automatica.** Se a sonda de saude nao responder
+  depois do restart, o `publicar.sh` volta para a revisao anterior em vez de
+  deixar a aplicacao fora do ar.
+
+O mesmo aplicativo sobe sem alteracao no **Streamlit Community Cloud** —
+apontar `app/streamlit_app.py` e colocar `GOOGLE_API_KEY` nos secrets basta,
+porque o indice vetorial ja esta versionado. Que os dois caminhos custem o
+mesmo esforco e consequencia do desacoplamento: nada abaixo de `app/` sabe
+onde esta rodando.
 
 ## Fontes de dados
 
@@ -338,6 +623,27 @@ Render, Vercel ou em um servidor proprio trocando apenas a camada de `app/`.
 | Metodologia de consumo | Inmetro | PDF oficial indexado |
 | Manuais de montadora | Sites oficiais das marcas | Corolla indexado; 24 guardados |
 | Ficha tecnica | Curadoria manual | Em conferencia |
+| Politicas internas | Acervo da empresa ficticia | Escrito e versionado |
+
+### Formatos aceitos na indexacao
+
+Basta soltar o arquivo em `dados/brutos/documentos/` e rodar
+`python scripts/indexar_documentos.py`:
+
+| Formato | Tratamento |
+| --- | --- |
+| PDF | Texto por pagina, com o numero da pagina preservado na citacao |
+| Word (.docx) | Paragrafos e tabelas |
+| Excel (.xlsx) | Uma frase por linha, com o cabecalho repetido |
+| PowerPoint (.pptx) | Texto de cada slide mais as notas do apresentador |
+| HTML | Texto limpo, sem script, estilo, navegacao e rodape |
+| CSV | Uma frase por linha; o separador e detectado |
+| JSON | Achatado em `caminho.ate.folha: valor` |
+| Markdown e texto | Direto |
+
+As bibliotecas de cada formato sao importadas sob demanda: um acervo so de PDF
+funciona sem elas, e a falta de uma vira aviso no arquivo que a exigia, nao erro
+na inicializacao.
 
 Para acrescentar manuais do proprietario ao indice, veja
 [`docs/MANUAIS.md`](docs/MANUAIS.md). Os sites das montadoras bloqueiam
@@ -356,17 +662,29 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-72 testes cobrindo o calculo da viagem, as consultas ao catalogo, a resolucao
-de precos por estado e a selecao de provedor e credencial — as partes onde um erro numerico viraria uma resposta
-errada com aparencia de certeza.
+124 testes cobrindo o calculo da viagem, as consultas ao catalogo, a resolucao de
+precos por estado, a selecao de provedor e credencial, a camada de recuperacao, a
+leitura dos formatos de documento e o registro de execucao — as partes onde um
+erro viraria uma resposta errada com aparencia de certeza.
 
-Um deles merece nota: a simulacao **soma os litros gastos em cada trecho** em
+Dois merecem nota.
+
+O primeiro: a simulacao **soma os litros gastos em cada trecho** em
 vez de aplicar a media dos consumos sobre a distancia total. Media aritmetica
 de km/l subestima o gasto, porque consumo e uma razao invertida. Ha teste
 fixando esse comportamento.
 
+O segundo: a leitura de planilha **repete o cabecalho em cada linha**, de modo
+que "modelo: Corolla | preco: 145000" sobreviva ao fatiamento. Uma tabela em
+colunas perde o cabecalho no primeiro corte, e o trecho recuperado vira uma
+fileira de numeros sem legenda — que o modelo entao atribui ao carro errado.
+
 ## Limitacoes conhecidas
 
+- **Índice pendente de reconstrução.** O acervo corporativo foi acrescentado
+  depois da última indexação. Enquanto `python scripts/indexar_documentos.py`
+  não for executado com a chave de API, o agente responde sobre catálogo, preços
+  e viagens, mas não sobre as políticas internas.
 - **Catalogo fechado.** 28 modelos, ano 2024. Carros fora dessa lista nao sao
   respondidos, e o agente diz isso.
 - **Ficha tecnica em conferencia.** Motor, potencia, torque, cambio, tanque e
@@ -389,3 +707,28 @@ fixando esse comportamento.
 - **Consumo de ensaio.** Os numeros do Inmetro vem de condicoes controladas. O
   consumo real varia com carga, ar-condicionado, relevo e conducao. O agente
   informa isso em toda simulacao.
+
+## Autor
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Lrcc218">
+        <img src="https://github.com/Lrcc218.png" width="100" alt="Foto de perfil" style="border-radius:50%"><br>
+        <sub><b>Lrcc218</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
+
+Projeto desenvolvido para o **Challenge Alura — ONE IA for Tech**.
+
+## Licença
+
+Distribuído sob a licença MIT. Veja [`LICENSE`](LICENSE) para o texto completo.
+
+Os documentos de terceiros usados pelo projeto — tabelas do PBE Veicular do
+Inmetro, dados da Tabela FIPE, levantamento de preços da ANP e manuais de
+proprietário das montadoras — permanecem sob os direitos de seus titulares e são
+usados aqui para fins de estudo, com a fonte citada em
+[`docs/FONTES.md`](docs/FONTES.md).
