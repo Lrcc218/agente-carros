@@ -7,10 +7,14 @@ argumentos para que o modelo saiba quando e como chama-las.
 
 from __future__ import annotations
 
+import re
+import time
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from agente_carros import registro
+from agente_carros.config import carregar_configuracao
 from agente_carros.dominio.portas import (
     BaseVetorial,
     RepositorioCatalogo,
@@ -28,19 +32,27 @@ from agente_carros.ferramentas.simular_viagem import (
 )
 
 INSTRUCOES = """\
-Voce e um assistente de pesquisa para quem esta escolhendo um carro para comprar.
+Voce e o assistente interno da Autoluz Veiculos, uma rede de concessionarias.
+Atende qualquer colaborador — vendas, produto, pos-venda e atendimento — sobre o
+catalogo, os precos e os documentos oficiais da operacao.
 Responda em portugues do Brasil, de forma direta e objetiva.
 
 Voce tem um catalogo fechado de 28 modelos do ano 2024, que vai do hatch de
 entrada ao superesportivo. Os precos vem da Tabela FIPE e os dados de consumo
 vem do PBE Veicular do Inmetro.
 
-Alem do catalogo, voce tem documentos indexados para busca: os do Inmetro
-sobre etiquetagem veicular e o manual do proprietario do Toyota Corolla, com
-484 paginas. Perguntas sobre manutencao, revisao, fluidos, pneus, garantia ou
-operacao do Corolla devem ser respondidas consultando esse manual. Para os
-outros 27 modelos ainda nao ha manual indexado; nesses casos diga que a
-informacao nao esta disponivel para aquele modelo.
+Alem do catalogo, voce tem tres acervos de documentos indexados para busca:
+
+- As politicas internas da Autoluz: garantia e pos-venda, politica comercial e
+  de precificacao, privacidade e LGPD, perguntas frequentes, manual de
+  onboarding, tabela de servicos e alcadas da oficina e o diretorio de areas
+  responsaveis. Perguntas sobre prazo de garantia, alcada de desconto, avaliacao
+  de usado, beneficios, prazos de atendimento ou conduta vem daqui.
+- Os documentos do Inmetro sobre etiquetagem veicular.
+- O manual do proprietario do Toyota Corolla, com 484 paginas. Perguntas sobre
+  manutencao, revisao, fluidos, pneus ou operacao do Corolla vem dele. Para os
+  outros 27 modelos ainda nao ha manual indexado; nesses casos diga que a
+  informacao nao esta disponivel para aquele modelo.
 
 Regras que voce sempre segue:
 
@@ -72,6 +84,13 @@ Regras que voce sempre segue:
 7. A ficha tecnica do catalogo ainda esta em conferencia; consumo e preco vem de
    fonte oficial. Se a pergunta depender de um dado da ficha, mencione essa
    ressalva uma vez.
+8. Quando nao encontrar a resposta em nenhum documento, diga isso e indique a
+   area responsavel pelo assunto, consultando o diretorio de areas no acervo
+   interno. Nao improvise contato nem procedimento.
+9. Nunca repita nem peca dado pessoal de cliente — nome, CPF, telefone, placa ou
+   chassi. A politica de privacidade proibe isso. Se a pergunta trouxer um dado
+   desses, responda pela regra geral e avise que o caso especifico deve ser
+   tratado no sistema interno.
 """
 
 
@@ -176,6 +195,18 @@ class BuscaDocumentos(BaseModel):
     consulta: str = Field(
         description="O que procurar nos documentos do Inmetro ou no manual do Corolla"
     )
+    tipo: Literal["documento_interno", "manual", "documento_oficial"] | None = Field(
+        default=None,
+        description=(
+            "Restringe a busca antes de comparar similaridade. Use "
+            "'documento_interno' para politicas da empresa: garantia, desconto, "
+            "alcada, avaliacao de usado, LGPD, beneficios, prazos de atendimento e "
+            "contatos das areas; 'manual' para revisao, fluidos, pneus e operacao "
+            "do veiculo, conforme o manual do proprietario; 'documento_oficial' "
+            "para metodologia do Inmetro e faixas de eficiencia. Deixe vazio "
+            "quando nao tiver certeza."
+        ),
+    )
 
 
 def extrair_texto(saida: Any) -> str:
@@ -207,12 +238,69 @@ def extrair_texto(saida: Any) -> str:
     return str(saida).strip()
 
 
-def responder(executor: Any, pergunta: str, historico: list | None = None) -> str:
-    """Faz uma pergunta ao agente e devolve a resposta ja em texto puro."""
+PADRAO_FONTE = re.compile(r"\[Trecho \d+ — ([^,\]]+)")
+
+
+def fontes_citadas(passos: Any) -> list[str]:
+    """Le as fontes no proprio texto devolvido pela busca semantica.
+
+    Refazer a busca so para saber a procedencia custaria uma segunda
+    chamada de embedding por pergunta. O formato do trecho ja carrega o
+    nome do documento, entao basta le-lo de volta.
+    """
+    fontes: list[str] = []
+    for passo in passos or []:
+        observacao = passo[1] if isinstance(passo, tuple | list) and len(passo) > 1 else None
+        if isinstance(observacao, str):
+            fontes.extend(PADRAO_FONTE.findall(observacao))
+    return sorted({fonte.strip() for fonte in fontes if fonte.strip()})
+
+
+def responder(
+    executor: Any,
+    pergunta: str,
+    historico: list | None = None,
+    sessao: str | None = None,
+    interface: str = "desconhecida",
+    id_execucao: str | None = None,
+) -> str:
+    """Faz uma pergunta ao agente e devolve a resposta ja em texto puro.
+
+    De quebra, deixa a execucao registrada: sem esse rastro nao ha como
+    auditar depois por que uma resposta saiu como saiu, nem medir quanto
+    o agente demora ou com que frequencia ele nao encontra material.
+    """
     entrada: dict[str, Any] = {"pergunta": pergunta}
     if historico:
         entrada["historico"] = historico
-    return extrair_texto(executor.invoke(entrada)["output"])
+
+    config = carregar_configuracao()
+    inicio = time.perf_counter()
+    resposta, erro = "", None
+    saida: dict[str, Any] = {}
+    try:
+        saida = executor.invoke(entrada)
+        resposta = extrair_texto(saida["output"])
+        return resposta
+    except Exception as excecao:
+        erro = f"{type(excecao).__name__}: {excecao}"
+        raise
+    finally:
+        passos = saida.get("intermediate_steps") if isinstance(saida, dict) else None
+        registro.registrar_execucao(
+            diretorio=config.caminhos.registros,
+            pergunta=pergunta,
+            resposta=resposta,
+            duracao_ms=int((time.perf_counter() - inicio) * 1000),
+            ferramentas=registro.ferramentas_usadas(passos),
+            fontes=fontes_citadas(passos),
+            sessao=sessao,
+            interface=interface,
+            provedor=config.provedor_llm,
+            modelo=config.modelo_chat,
+            erro=erro,
+            id_execucao=id_execucao,
+        )
 
 
 def _formatar_simulacao(resultado) -> str:
@@ -311,6 +399,7 @@ def montar_ferramentas(
     base_vetorial: BaseVetorial | None,
     trechos_recuperados: int,
     precos: RepositorioPrecosCombustivel | None = None,
+    limiar_relevancia: float = 0.0,
 ) -> list[Any]:
     """Embrulha as funcoes puras como ferramentas do LangChain."""
     from langchain_core.tools import StructuredTool
@@ -446,23 +535,30 @@ def montar_ferramentas(
 
     if base_vetorial is not None:
 
-        def documentos(consulta: str) -> str:
-            return buscar_nos_documentos(base_vetorial, consulta, trechos_recuperados)
+        def documentos(consulta: str, tipo: str | None = None) -> str:
+            return buscar_nos_documentos(
+                base_vetorial,
+                consulta,
+                trechos_recuperados,
+                tipo=tipo,
+                limiar=limiar_relevancia,
+            )
 
         ferramentas.append(
             StructuredTool.from_function(
                 func=documentos,
                 name="buscar_documentos_oficiais",
                 description=(
-                    "Busca trechos nos documentos indexados. Cobre duas coisas: "
+                    "Busca trechos nos documentos indexados. Cobre tres acervos: "
+                    "as politicas internas da Autoluz (garantia e pos-venda, "
+                    "politica comercial, alcadas de desconto, avaliacao de usado, "
+                    "LGPD, beneficios, prazos de atendimento, areas responsaveis); "
                     "os documentos do Inmetro sobre o Programa Brasileiro de "
-                    "Etiquetagem Veicular, com metodologia de medicao de consumo e "
-                    "faixas de eficiencia; e o manual do proprietario do Toyota "
-                    "Corolla, com revisao periodica, troca de fluidos, oleo, pneus, "
-                    "garantia, luzes de advertencia e operacao do veiculo. "
-                    "Use sempre que a pergunta for sobre manutencao, manual, "
-                    "procedimento ou operacao. Preco, potencia e consumo continuam "
-                    "vindo do catalogo, nao daqui."
+                    "Etiquetagem Veicular; e o manual do proprietario do Toyota "
+                    "Corolla, com revisao periodica, fluidos, pneus, luzes de "
+                    "advertencia e operacao. Use sempre que a pergunta for sobre "
+                    "politica da empresa, procedimento, manutencao ou manual. "
+                    "Preco, potencia e consumo continuam vindo do catalogo."
                 ),
                 args_schema=BuscaDocumentos,
             )
@@ -477,6 +573,7 @@ def montar_agente(
     base_vetorial: BaseVetorial | None,
     trechos_recuperados: int = 4,
     precos: RepositorioPrecosCombustivel | None = None,
+    limiar_relevancia: float = 0.0,
 ) -> Any:
     """Devolve um executor pronto para receber perguntas."""
     # A partir do LangChain 1.x a API de agentes migrou para create_agent e
@@ -485,7 +582,9 @@ def montar_agente(
     from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
     from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-    ferramentas = montar_ferramentas(catalogo, base_vetorial, trechos_recuperados, precos)
+    ferramentas = montar_ferramentas(
+        catalogo, base_vetorial, trechos_recuperados, precos, limiar_relevancia
+    )
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", INSTRUCOES),

@@ -94,6 +94,7 @@ def criar_agente(config: Configuracao | None = None) -> Montagem:
         base_vetorial=base_vetorial,
         trechos_recuperados=config.trechos_recuperados,
         precos=precos,
+        limiar_relevancia=config.limiar_relevancia,
     )
 
     pendencias = []

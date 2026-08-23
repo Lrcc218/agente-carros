@@ -97,6 +97,12 @@ class TrechoRecuperado:
     conteudo: str
     fonte: str
     pagina: int | None = None
+    # Relevancia de 0 a 1 devolvida pela base vetorial, quando ela sabe
+    # calcular. Serve para o limiar de corte e para calibra-lo depois.
+    relevancia: float | None = None
+    # "manual" ou "documento_oficial": permite restringir a busca antes de
+    # comparar similaridade.
+    tipo: str | None = None
 
 
 @dataclass(frozen=True)

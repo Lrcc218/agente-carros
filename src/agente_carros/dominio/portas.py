@@ -30,8 +30,18 @@ class ProvedorLLM(Protocol):
 class BaseVetorial(Protocol):
     """Armazena e recupera trechos de documentos por similaridade."""
 
-    def buscar(self, consulta: str, quantidade: int) -> list[TrechoRecuperado]:
-        """Recupera os trechos mais relevantes para a consulta."""
+    def buscar(
+        self,
+        consulta: str,
+        quantidade: int,
+        tipo: str | None = None,
+        limiar: float = 0.0,
+    ) -> list[TrechoRecuperado]:
+        """Recupera os trechos mais relevantes para a consulta.
+
+        `tipo` restringe por metadado antes da busca; `limiar` descarta o
+        que ficar abaixo da relevancia informada.
+        """
         ...
 
 
