@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img alt="Status" src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow">
+  <img alt="Status" src="https://img.shields.io/badge/status-no%20ar-brightgreen">
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue">
   <img alt="LangChain" src="https://img.shields.io/badge/LangChain-1.3-1c3c3c">
   <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.61-ff4b4b">
@@ -27,9 +27,9 @@
 
 ## Status do projeto
 
-🚧 **Em desenvolvimento.** O agente responde, os dados estão coletados, o índice
-está construído e a infraestrutura de deploy está pronta e versionada. Falta
-publicar na OCI e registrar a evidência de execução.
+✅ **No ar.** O agente responde, os dados estão coletados, o índice cobre os três
+acervos e a aplicação está publicada e funcionando na Oracle Cloud
+Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 
 | Etapa | Situação |
 | --- | --- |
@@ -38,20 +38,50 @@ publicar na OCI e registrar a evidência de execução.
 | Agente, ferramentas e recuperação | ✅ concluída |
 | Interface e registro de execução | ✅ concluída |
 | Preparação do deploy na OCI | ✅ concluída |
-| Publicação na OCI e evidência | ⏳ pendente |
+| Publicação na OCI | ✅ concluída |
+| Evidência em imagem e vídeo | ⏳ pendente |
 
 ## Demonstração
 
-> ⚠️ **PENDENTE — depende de publicação.** Assim que a aplicação estiver no ar na
-> OCI, esta seção recebe o link e a mídia exigidos pelo challenge.
->
-> - **Aplicação:** _(URL pública da instância na OCI)_
-> - **Vídeo:** _(gravação de uma conversa, 1 a 2 minutos)_
-> - **Capturas:** _(salvar em `docs/imagens/` e referenciar aqui)_
->
-> Sugestão de roteiro para a gravação: uma pergunta de catálogo, uma simulação de
-> viagem, uma pergunta ao manual do proprietário e uma pergunta fora do escopo,
-> para mostrar a recusa.
+**🟢 Aplicação no ar:** **http://134.65.50.188**
+
+Publicada em instância própria na **Oracle Cloud Infrastructure**, região
+`sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso e o processo
+supervisionado por systemd.
+
+Resposta real do agente rodando no servidor, à pergunta *"Até quanto de desconto
+um consultor de vendas pode dar sozinho?"*:
+
+```
+O consultor de vendas pode conceder sozinho um desconto de até 2% sobre o preço
+de venda anunciado do veículo (excluídos emplacamento e documentação).
+
+Acima disso, as alçadas são:
+- Até 2%:              Consultor de vendas
+- Acima de 2% até 5%:  Gerente da unidade
+- Acima de 5% até 8%:  Gerência Regional
+- Acima de 8%:         Diretoria Comercial
+
+Lembre-se de que a alçada é por negócio e o desconto deve ser registrado na
+proposta com o respectivo motivo. Dividir o desconto entre veículo e acessórios
+para caber na alçada é considerado burla e falta disciplinar.
+```
+
+O agente localizou a informação na **Política Comercial e de Precificação**,
+citou a fonte e ainda trouxe a ressalva sobre burla de alçada — que está no
+documento, não no modelo.
+
+Registro de execução do servidor no mesmo instante, medido em produção:
+
+```
+Volume                     1 pergunta respondida, 0 falhas
+Tempo de resposta          mediana 3,2 s
+Ferramentas acionadas      1  buscar_documentos_oficiais
+Documentos citados         1  Política Comercial e de Precificação
+                           1  Manual de Perguntas Frequentes
+```
+
+> ⏳ **Pendente:** captura de tela e vídeo da conversa na interface web.
 
 ## O contexto
 
@@ -681,10 +711,6 @@ fileira de numeros sem legenda — que o modelo entao atribui ao carro errado.
 
 ## Limitacoes conhecidas
 
-- **Índice pendente de reconstrução.** O acervo corporativo foi acrescentado
-  depois da última indexação. Enquanto `python scripts/indexar_documentos.py`
-  não for executado com a chave de API, o agente responde sobre catálogo, preços
-  e viagens, mas não sobre as políticas internas.
 - **Catalogo fechado.** 28 modelos, ano 2024. Carros fora dessa lista nao sao
   respondidos, e o agente diz isso.
 - **Ficha tecnica em conferencia.** Motor, potencia, torque, cambio, tanque e
