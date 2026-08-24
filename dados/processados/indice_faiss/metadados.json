@@ -1,13 +1,20 @@
 {
-  "gerado_em": "2026-08-19",
+  "gerado_em": "2026-08-23",
   "modelo_embedding": "models/gemini-embedding-2",
   "documentos": [
-    "toyota_corolla_manual_proprietario.pdf",
+    "contatos_areas.pdf",
+    "faq_atendimento.pdf",
+    "manual_onboarding.pdf",
     "pbev_2025_tabela_consumo.pdf",
     "pbev_2026_tabela_consumo.pdf",
-    "pbev_metodologia_consumo.pdf"
+    "pbev_metodologia_consumo.pdf",
+    "politica_comercial_precificacao.pdf",
+    "politica_garantia_pos_venda.pdf",
+    "politica_privacidade_lgpd.pdf",
+    "tabela_servicos_oficina.pdf",
+    "toyota_corolla_manual_proprietario.pdf"
   ],
-  "trechos": 667,
+  "trechos": 702,
   "tamanho_trecho": 2400,
   "sobreposicao": 200
 }

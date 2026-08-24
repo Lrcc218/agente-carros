@@ -215,7 +215,48 @@ def classificar(arquivo: Path, origem: Path, corporativos: Path) -> str:
     return "manual" if arquivo.parent.name == "manuais" else "documento_oficial"
 
 
-def indexar(pastas: list[Path], destino: Path) -> None:
+def documentos_ja_indexados(destino: Path) -> set[str]:
+    """Nomes dos documentos que o indice atual contem."""
+    metadados = destino / "metadados.json"
+    if not metadados.exists():
+        return set()
+    try:
+        return set(json.loads(metadados.read_text(encoding="utf-8")).get("documentos", []))
+    except (json.JSONDecodeError, OSError):
+        return set()
+
+
+def conferir_perdas(destino: Path, encontrados: list[tuple[Path, Path]], forcar: bool) -> None:
+    """Recusa reconstruir o indice quando isso apagaria documentos.
+
+    A indexacao reconstroi do zero, entao ela so conhece o que esta em
+    disco no momento. Os PDFs baixados nao sao versionados: num clone
+    novo do repositorio a pasta esta vazia, e reindexar ali silenciosamente
+    apagaria do indice o manual do proprietario e as tabelas do Inmetro.
+
+    O sintoma nao apareceria aqui, e sim semanas depois, com o agente
+    dizendo que nao sabe algo que ele sabia.
+    """
+    perdidos = documentos_ja_indexados(destino) - {a.name for a, _ in encontrados}
+    if not perdidos or forcar:
+        if perdidos:
+            print(f"AVISO: {len(perdidos)} documento(s) sairao do indice, a seu pedido.")
+        return
+
+    print("\nO indice atual contem documentos que nao estao em disco:\n")
+    for nome in sorted(perdidos):
+        print(f"  - {nome}")
+    raise SystemExit(
+        "\nReconstruir agora apagaria esses documentos do indice.\n\n"
+        "Para recuperar os documentos baixados por script:\n"
+        "    python scripts/baixar_documentos.py\n\n"
+        "Manuais de montadora entram a mao; veja docs/MANUAIS.md.\n"
+        "Para reconstruir mesmo assim, sabendo o que perde:\n"
+        "    python scripts/indexar_documentos.py --forcar"
+    )
+
+
+def indexar(pastas: list[Path], destino: Path, forcar: bool = False) -> None:
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.vectorstores import FAISS
     from langchain_core.documents import Document
@@ -236,6 +277,7 @@ def indexar(pastas: list[Path], destino: Path) -> None:
             f"Nenhum documento em {locais} (formatos aceitos: {formatos}). "
             "Rode antes: python scripts/baixar_documentos.py"
         )
+    conferir_perdas(destino, encontrados, forcar)
     arquivos = [arquivo for arquivo, _ in encontrados]
 
     titulos: dict[str, str] = {}
@@ -330,8 +372,13 @@ def main() -> None:
         help="Pastas do acervo. Por padrao, o acervo interno e os documentos baixados.",
     )
     analisador.add_argument("--destino", type=Path, default=config.caminhos.indice_vetorial)
+    analisador.add_argument(
+        "--forcar",
+        action="store_true",
+        help="Reconstroi mesmo que documentos ja indexados saiam do indice",
+    )
     argumentos = analisador.parse_args()
-    indexar(list(argumentos.documentos), argumentos.destino)
+    indexar(list(argumentos.documentos), argumentos.destino, argumentos.forcar)
 
 
 if __name__ == "__main__":
