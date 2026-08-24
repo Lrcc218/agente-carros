@@ -60,6 +60,11 @@ Let's Encrypt e renovação automática, e o processo supervisionado por systemd
 
 <img src="https://github.com/user-attachments/assets/035b3526-2baa-4d17-ba5b-56c1185182f1" alt="Tela de tutorial exibida no primeiro acesso" width="900">
 
+
+https://github.com/user-attachments/assets/78d41288-c86b-4b53-adcc-ac4c808488d7
+
+
+
 Resposta real do agente rodando no servidor, à pergunta *"Até quanto de desconto
 um consultor de vendas pode dar sozinho?"*:
 
