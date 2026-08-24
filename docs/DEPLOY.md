@@ -133,8 +133,25 @@ $EDITOR infra/oci/instancia.env
 > não indica erro de configuração. Não existe fila: a instância sai para quem
 > estiver pedindo no instante em que alguém libera. O script pede de novo a
 > cada 3 minutos até passar — pode levar horas ou dias em regiões movimentadas.
-> Contas *Pay As You Go* têm prioridade de alocação, e continuam pagando zero
-> pelos recursos Always Free.
+>
+> As regiões brasileiras têm **um único domínio de disponibilidade**, então
+> "tente outro AD" não se aplica aqui: resta insistir.
+>
+> O caminho mais rápido é o **Cloud Shell**, embutido no console, que já traz a
+> OCI CLI instalada e autenticada:
+>
+> ```bash
+> git clone --depth 1 https://github.com/Lrcc218/agente-carros.git ~/ac
+> cat > ~/agente-carros.pub    # cole a chave pública e encerre com Ctrl+D
+> bash ~/ac/infra/oci/criar-instancia-cloudshell.sh
+> ```
+>
+> O script descobre compartimento, sub-rede, domínio e imagem sozinho — não há
+> OCID para procurar. Ele também **não fixa fault domain**, porque restringir o
+> domínio reduz onde a OCI pode alocar.
+>
+> Contas *Pay As You Go* têm prioridade de alocação e continuam pagando zero
+> pelos recursos Always Free. Quando a espera se arrasta, é o que resolve.
 
 ### 2. Abrir a porta na rede virtual
 

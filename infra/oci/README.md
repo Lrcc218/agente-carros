@@ -7,6 +7,7 @@ O runbook, com contexto e diagnóstico de falhas, está em
 
 | Arquivo | Onde roda | Para quê |
 | --- | --- | --- |
+| `criar-instancia-cloudshell.sh` | Cloud Shell da OCI | Mesma coisa, sem instalar nada: descobre compartimento, sub-rede, domínio e imagem sozinho |
 | `criar-instancia.sh` | máquina local | Cria a VM pela OCI CLI, insistindo enquanto não há capacidade ARM |
 | `cloud-init.yaml` | primeiro boot da VM | Provisiona sozinho, sem SSH |
 | `provisionar.sh` | servidor, como root | Instala tudo do zero. Idempotente |
