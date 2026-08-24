@@ -11,6 +11,7 @@
   <img alt="LangChain" src="https://img.shields.io/badge/LangChain-1.3-1c3c3c">
   <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.61-ff4b4b">
   <img alt="Deploy" src="https://img.shields.io/badge/deploy-Oracle%20Cloud-c74634">
+  <img alt="HTTPS" src="https://img.shields.io/badge/HTTPS-Let's%20Encrypt-003a70">
   <img alt="Testes" src="https://img.shields.io/badge/testes-124%20passando-brightgreen">
   <img alt="Licença" src="https://img.shields.io/badge/licen%C3%A7a-MIT-green">
 </p>
@@ -43,11 +44,11 @@ Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 
 ## Demonstração
 
-**🟢 Aplicação no ar:** **http://134.65.50.188**
+**🟢 Aplicação no ar:** **https://134-65-50-188.sslip.io**
 
 Publicada em instância própria na **Oracle Cloud Infrastructure**, região
-`sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso e o processo
-supervisionado por systemd.
+`sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso, HTTPS com certificado
+Let's Encrypt e renovação automática, e o processo supervisionado por systemd.
 
 Resposta real do agente rodando no servidor, à pergunta *"Até quanto de desconto
 um consultor de vendas pode dar sozinho?"*:
