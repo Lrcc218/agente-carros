@@ -29,8 +29,9 @@
 ## Status do projeto
 
 ✅ **No ar.** O agente responde, os dados estão coletados, o índice cobre os três
-acervos e a aplicação está publicada e funcionando na Oracle Cloud
-Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
+acervos, e a aplicação está publicada e funcionando na Oracle Cloud
+Infrastructure, com HTTPS e domínio próprio. Falta apenas o vídeo da
+demonstração.
 
 | Etapa | Situação |
 | --- | --- |
