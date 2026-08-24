@@ -32,6 +32,12 @@ erro()   { printf '\033[31merro: %s\033[0m\n' "$*" >&2; exit 1; }
 
 command -v oci >/dev/null 2>&1 || erro "OCI CLI ausente; rode este script no Cloud Shell"
 [ -f "$CHAVE_PUB" ] || erro "chave publica nao encontrada em $CHAVE_PUB"
+# Arquivo vazio ou sem formato de chave passa despercebido e produz uma
+# instancia sem acesso SSH — que so se descobre na hora de conectar, depois
+# de a capacidade ter sido conseguida.
+grep -qE '^(ssh-(ed25519|rsa)|ecdsa-sha2-) [A-Za-z0-9+/]{20,}' "$CHAVE_PUB" \
+    || erro "$CHAVE_PUB nao contem uma chave publica valida. Grave assim:
+    echo 'ssh-ed25519 AAAA... comentario' > $CHAVE_PUB"
 
 # No Cloud Shell a tenancy vem pronta no ambiente. O compartimento raiz tem o
 # mesmo OCID da tenancy.
