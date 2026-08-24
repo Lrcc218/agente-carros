@@ -20,6 +20,28 @@
 > conhecimento, publicado na Oracle Cloud Infrastructure.
 
 
+## Índice
+
+- [Status do projeto](#status-do-projeto)
+- [Demonstração](#demonstração)
+- [O contexto](#o-contexto)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Documentação](#documentação)
+- [O que ele faz](#o-que-ele-faz)
+- [Exemplos de perguntas](#exemplos-de-perguntas)
+- [Exemplos de respostas](#exemplos-de-respostas)
+- [O que ele nao faz](#o-que-ele-nao-faz)
+- [Arquitetura](#arquitetura)
+- [Registro de execução e qualidade](#registro-de-execução-e-qualidade)
+- [Tecnologias](#tecnologias)
+- [Como executar](#como-executar)
+- [Deploy](#deploy)
+- [Fontes de dados](#fontes-de-dados)
+- [Testes](#testes)
+- [Limitacoes conhecidas](#limitacoes-conhecidas)
+- [Autor](#autor)
+- [Licença](#licença)
+
 ## Status do projeto
 
 ✅ **Concluído e no ar.** O agente responde, os dados estão coletados, o
@@ -156,25 +178,6 @@ testes/   suíte de testes
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Runbook da publicação na OCI |
 | [docs/FONTES.md](docs/FONTES.md) | Procedência de cada dado |
 | [docs/MANUAIS.md](docs/MANUAIS.md) | Como incluir manuais de montadora |
-
-## Índice
-
-- [Estrutura do repositório](#estrutura-do-repositório)
-- [Documentação](#documentação)
-- [O que ele faz](#o-que-ele-faz)
-- [Exemplos de perguntas](#exemplos-de-perguntas)
-- [Exemplos de respostas](#exemplos-de-respostas)
-- [O que ele nao faz](#o-que-ele-nao-faz)
-- [Arquitetura](#arquitetura)
-- [Registro de execução e qualidade](#registro-de-execução-e-qualidade)
-- [Tecnologias](#tecnologias)
-- [Como executar](#como-executar)
-- [Deploy](#deploy)
-- [Fontes de dados](#fontes-de-dados)
-- [Testes](#testes)
-- [Limitacoes conhecidas](#limitacoes-conhecidas)
-- [Autor](#autor)
-- [Licença](#licença)
 
 ## O que ele faz
 
