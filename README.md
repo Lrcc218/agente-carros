@@ -40,7 +40,15 @@ Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 | Interface e registro de execução | ✅ concluída |
 | Preparação do deploy na OCI | ✅ concluída |
 | Publicação na OCI | ✅ concluída |
-| Evidência em imagem e vídeo | ⏳ pendente |
+| Evidência em imagem e vídeo |
+|Captura de Tela:|
+<img width="3816" height="2066" alt="chat_funcionando" src="https://github.com/user-attachments/assets/6d5380cd-5ccc-4590-a6f4-28789ac13bab" />
+<img width="3839" height="2068" alt="tutorial_agente" src="https://github.com/user-attachments/assets/035b3526-2baa-4d17-ba5b-56c1185182f1" />
+|Captura de Vídeo|
+
+
+
+
 
 ## Demonstração
 
