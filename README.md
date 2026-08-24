@@ -44,7 +44,7 @@ Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 
 ## Demonstração
 
-**🟢 Aplicação no ar:** **https://134-65-50-188.sslip.io**
+**🟢 Aplicação no ar:** **https://consultor-autoluz.duckdns.org**
 
 Publicada em instância própria na **Oracle Cloud Infrastructure**, região
 `sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso, HTTPS com certificado
