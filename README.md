@@ -40,15 +40,8 @@ Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 | Interface e registro de execução | ✅ concluída |
 | Preparação do deploy na OCI | ✅ concluída |
 | Publicação na OCI | ✅ concluída |
-| Evidência em imagem e vídeo |
-|Captura de Tela:|
-<img width="3816" height="2066" alt="chat_funcionando" src="https://github.com/user-attachments/assets/6d5380cd-5ccc-4590-a6f4-28789ac13bab" />
-<img width="3839" height="2068" alt="tutorial_agente" src="https://github.com/user-attachments/assets/035b3526-2baa-4d17-ba5b-56c1185182f1" />
-|Captura de Vídeo|
-
-
-
-
+| Evidência em imagem | ✅ concluída |
+| Vídeo da demonstração | ⏳ pendente |
 
 ## Demonstração
 
@@ -57,6 +50,14 @@ Infrastructure. Falta apenas registrar a evidência em imagem e vídeo.
 Publicada em instância própria na **Oracle Cloud Infrastructure**, região
 `sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso, HTTPS com certificado
 Let's Encrypt e renovação automática, e o processo supervisionado por systemd.
+
+### Agente respondendo em produção
+
+<img src="https://github.com/user-attachments/assets/6d5380cd-5ccc-4590-a6f4-28789ac13bab" alt="Conversa com o agente na aplicação publicada" width="900">
+
+### Tutorial de primeiro acesso
+
+<img src="https://github.com/user-attachments/assets/035b3526-2baa-4d17-ba5b-56c1185182f1" alt="Tela de tutorial exibida no primeiro acesso" width="900">
 
 Resposta real do agente rodando no servidor, à pergunta *"Até quanto de desconto
 um consultor de vendas pode dar sozinho?"*:
@@ -90,7 +91,7 @@ Documentos citados         1  Política Comercial e de Precificação
                            1  Manual de Perguntas Frequentes
 ```
 
-> ⏳ **Pendente:** captura de tela e vídeo da conversa na interface web.
+> ⏳ **Pendente:** vídeo da demonstração.
 
 ## O contexto
 
