@@ -51,11 +51,22 @@ VCN_ID="$(oci network vcn list --compartment-id "$COMPARTIMENTO" \
 [ -n "$VCN_ID" ] && [ "$VCN_ID" != "null" ] || erro "VCN '$VCN' nao encontrada neste compartimento"
 info "vcn: $VCN"
 
-# A sub-rede publica e a que NAO proibe IP publico na placa de rede.
-SUBNET_ID="$(oci network subnet list --compartment-id "$COMPARTIMENTO" --vcn-id "$VCN_ID" \
-    --query 'data[?"prohibit-public-ip-on-vnic"==`false`].id | [0]' --raw-output 2>/dev/null || true)"
-[ -n "$SUBNET_ID" ] && [ "$SUBNET_ID" != "null" ] || erro "nenhuma sub-rede publica na VCN '$VCN'"
-info "sub-rede publica encontrada"
+# Sub-rede publica e a que tem ROTA para um Internet Gateway. O campo
+# "prohibit-public-ip-on-vnic" nao serve para decidir: uma sub-rede pode
+# aceitar IP publico e mesmo assim nao ter saida, e a instancia nasce com
+# endereco que nao responde a nada - falha silenciosa e cara de achar.
+SUBNET_ID=""
+for candidata in $(oci network subnet list --compartment-id "$COMPARTIMENTO" \
+        --vcn-id "$VCN_ID" --query 'data[].id' --raw-output | tr -d '[]", ' | grep -v '^$'); do
+    rota="$(oci network subnet get --subnet-id "$candidata" \
+        --query 'data."route-table-id"' --raw-output)"
+    if oci network route-table get --rt-id "$rota" 2>/dev/null | grep -q "ocid1.internetgateway"; then
+        SUBNET_ID="$candidata"
+        break
+    fi
+done
+[ -n "$SUBNET_ID" ] || erro "nenhuma sub-rede da VCN '$VCN' tem rota para um Internet Gateway"
+info "sub-rede publica: rota para Internet Gateway confirmada"
 
 IMAGEM_ID="$(oci compute image list --compartment-id "$COMPARTIMENTO" \
     --operating-system "Canonical Ubuntu" --operating-system-version "24.04" \

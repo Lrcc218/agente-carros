@@ -45,9 +45,11 @@ PROIBE="$(printf '%s' "$DADOS" | grep -o '"prohibit-public-ip-on-vnic": [a-z]*' 
 
 titulo "Rota para a internet"
 ROTA="$(printf '%s' "$DADOS" | grep -o '"route-table-id": "[^"]*"' | head -1 | cut -d'"' -f4)"
-if oci network route-table get --rt-id "$ROTA" | grep -q "internetgateway"; then
+TEM_ROTA=1
+if oci network route-table get --rt-id "$ROTA" | grep -q "ocid1.internetgateway"; then
     ok "rota 0.0.0.0/0 apontando para um Internet Gateway"
 else
+    TEM_ROTA=0
     falta "a tabela de rotas NAO aponta para um Internet Gateway"
     info "e o que faz a sub-rede parecer publica sem ser alcancavel"
 fi
@@ -74,7 +76,17 @@ for porta in 22 80 443; do
 done
 
 titulo "Conclusao"
-if ! printf '%s' "$PORTAS" | grep -qw 22; then
+if [ "$TEM_ROTA" -eq 0 ]; then
+    falta "A sub-rede nao tem saida para a internet."
+    info "Porta aberta sem rota nao adianta: o pacote nem chega na maquina."
+    info ""
+    info "Esta instancia nasceu na sub-rede errada. O caminho mais limpo e"
+    info "recria-la, porque a selecao de sub-rede ja foi corrigida:"
+    info "  1. Console -> Compute -> Instances -> Terminate"
+    info "  2. git -C ~/ac pull"
+    info "  3. SHAPE=VM.Standard.E5.Flex OCPUS=1 MEMORIA_GB=8 \\"
+    info "       bash ~/ac/infra/oci/criar-instancia-cloudshell.sh"
+elif ! printf '%s' "$PORTAS" | grep -qw 22; then
     falta "A porta 22 esta fechada. Sem ela nao ha SSH."
     info "Console -> Networking -> Virtual cloud networks -> sua VCN ->"
     info "Subnets -> sub-rede publica -> Security Lists -> a lista ->"
