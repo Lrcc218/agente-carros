@@ -19,19 +19,13 @@
 > **Challenge Alura — ONE IA for Tech.** Agente corporativo de base de
 > conhecimento, publicado na Oracle Cloud Infrastructure.
 
-<!-- PENDENTE: imagem de capa. Sugestão: um print da conversa, 1280x640,
-     salvo em docs/imagens/capa.png e referenciado aqui.
-<p align="center">
-  <img src="docs/imagens/capa.png" alt="Consultor de Veículos" width="720">
-</p>
--->
 
 ## Status do projeto
 
-✅ **No ar.** O agente responde, os dados estão coletados, o índice cobre os três
-acervos, e a aplicação está publicada e funcionando na Oracle Cloud
-Infrastructure, com HTTPS e domínio próprio. Falta apenas o vídeo da
-demonstração.
+✅ **Concluído e no ar.** O agente responde, os dados estão coletados, o
+índice cobre os três acervos, e a aplicação está publicada e funcionando na Oracle Cloud
+Infrastructure, com HTTPS e domínio próprio. Todos os entregáveis do challenge
+estão cumpridos.
 
 | Etapa | Situação |
 | --- | --- |
@@ -41,8 +35,7 @@ demonstração.
 | Interface e registro de execução | ✅ concluída |
 | Preparação do deploy na OCI | ✅ concluída |
 | Publicação na OCI | ✅ concluída |
-| Evidência em imagem | ✅ concluída |
-| Vídeo da demonstração | ⏳ pendente |
+| Evidência em imagem e vídeo | ✅ concluída |
 
 ## Demonstração
 
@@ -52,6 +45,13 @@ Publicada em instância própria na **Oracle Cloud Infrastructure**, região
 `sa-vinhedo-1`: Ubuntu 24.04, nginx como proxy reverso, HTTPS com certificado
 Let's Encrypt e renovação automática, e o processo supervisionado por systemd.
 
+### Vídeo da demonstração
+
+Uma conversa completa na aplicação publicada: consulta ao catálogo, simulação de
+viagem, pergunta a uma política interna e uma recusa fundamentada.
+
+https://github.com/user-attachments/assets/78d41288-c86b-4b53-adcc-ac4c808488d7
+
 ### Agente respondendo em produção
 
 <img src="https://github.com/user-attachments/assets/6d5380cd-5ccc-4590-a6f4-28789ac13bab" alt="Conversa com o agente na aplicação publicada" width="900">
@@ -60,13 +60,9 @@ Let's Encrypt e renovação automática, e o processo supervisionado por systemd
 
 <img src="https://github.com/user-attachments/assets/035b3526-2baa-4d17-ba5b-56c1185182f1" alt="Tela de tutorial exibida no primeiro acesso" width="900">
 
+### Resposta verificada no servidor
 
-https://github.com/user-attachments/assets/78d41288-c86b-4b53-adcc-ac4c808488d7
-
-
-
-Resposta real do agente rodando no servidor, à pergunta *"Até quanto de desconto
-um consultor de vendas pode dar sozinho?"*:
+À pergunta *"Até quanto de desconto um consultor de vendas pode dar sozinho?"*:
 
 ```
 O consultor de vendas pode conceder sozinho um desconto de até 2% sobre o preço
@@ -96,8 +92,6 @@ Ferramentas acionadas      1  buscar_documentos_oficiais
 Documentos citados         1  Política Comercial e de Precificação
                            1  Manual de Perguntas Frequentes
 ```
-
-> ⏳ **Pendente:** vídeo da demonstração.
 
 ## O contexto
 
